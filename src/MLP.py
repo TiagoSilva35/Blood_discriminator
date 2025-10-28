@@ -8,9 +8,6 @@ import torch.nn.functional as F
 
 class MLP(nn.Module):
     def __init__(self, input_size, hidden_sizes, num_classes, dropout_rate=0.2):
-        """
-        Multi-Layer Perceptron (MLP) with configurable hidden layers and dropout.
-        """
         super(MLP, self).__init__()
         
         self.layers = nn.ModuleList()
@@ -25,12 +22,17 @@ class MLP(nn.Module):
             self.layers.append(nn.Linear(hidden_sizes[-1], num_classes))
     
     def forward(self, x):
+        # flatten the input 
+        # (batch_size, channels, height, width) -> (batch_size, input_size)
         x = x.view(x.size(0), -1)
         
+        # pass through all hidden layers with activations
         for i in range(len(self.layers) - 1):
             x = self.layers[i](x)
             x = F.relu(x)
             x = self.dropout(x)
+
+        # pass through the final layer (no activation)
         x = self.layers[-1](x)
         
         return x

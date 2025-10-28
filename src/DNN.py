@@ -24,15 +24,16 @@ class DNN(nn.Module):
             self.layers.append(nn.Linear(hidden_sizes[-1], num_classes))
 
     def forward(self, x):
-        # Flatten the input (batch_size, channels, height, width) -> (batch_size, input_size)
+        # flatten the input 
+        # (batch_size, channels, height, width) -> (batch_size, input_size)
         x = x.view(x.size(0), -1)
         
-        # Pass through all hidden layers with activations
+        # pass through all hidden layers with activations
         for i in range(len(self.activations)):
             x = self.layers[i](x)
             x = self.activations[i](x)
-        
-        # Pass through the final layer (no activation)
+
+        # pass through the final layer (no activation)
         x = self.layers[-1](x)
         
         return x
