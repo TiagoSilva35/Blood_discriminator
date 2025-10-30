@@ -1,1 +1,1 @@
-Processed training data shapes: X: torch.Size([11959, 3, 28, 28]), y: torch.Size([11959])
+Processed training data shapes: X: torch.Size([11959, 2352]), y: torch.Size([11959])

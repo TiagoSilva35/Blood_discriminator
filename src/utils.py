@@ -34,3 +34,18 @@ def process_data(data_loader, flag = True):
     else:
         write_log('data_shapes.txt', f'X shape: {X.shape}\ny shape: {y.shape}\n')
         return X, y
+    
+def get_metrics(cm):
+    if isinstance(cm, torch.Tensor):
+        cm = cm.cpu().numpy()
+    TP = np.diag(cm)
+    FP = np.sum(cm, axis=0) - TP
+    FN = np.sum(cm, axis=1) - TP
+    TN = np.sum(cm) - (TP + FP + FN)
+
+    precision = np.divide(TP, TP + FP, out = np.zeros_like(TP, dtype=float), where=(TP + FP)!=0)
+    sensitivity = np.divide(TP, TP + FN, out = np.zeros_like(TP, dtype=float), where=(TP + FN)!=0)
+    specificity = np.divide(TN, TN + FP, out = np.zeros_like(TP, dtype=float), where=(TN + FP)!=0)
+
+    write_log('metrics.txt', f'Precision: {precision}\nSensitivity: {sensitivity}\nSpecificity: {specificity}\n') 
+    return precision, sensitivity, specificity

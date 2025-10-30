@@ -1,10 +1,10 @@
 Dataset BloodMNIST of size 28 (bloodmnist)
     Number of datapoints: 1712
-    Root location: C:\Users\Utilizador\.medmnist
+    Root location: /home/tiago/.medmnist
     Split: val
     Task: multi-class
     Number of channels: 3
     Meaning of labels: {'0': 'basophil', '1': 'eosinophil', '2': 'erythroblast', '3': 'immature granulocytes(myelocytes, metamyelocytes and promyelocytes)', '4': 'lymphocyte', '5': 'monocyte', '6': 'neutrophil', '7': 'platelet'}
     Number of samples: {'train': 11959, 'val': 1712, 'test': 3421}
-    Description: The BloodMNIST is based on a dataset of individual normal cells, captured from individuals without infection, hematologic or oncologic disease and free of any pharmacologic treatment at the moment of blood collection. It contains a total of 17,092 images and is organized into 8 classes. We split the source dataset with a ratio of 7:1:2 into training, validation and test set. The source images with resolution 3×360×363 pixels are center-cropped into 3×200×200, and then resized into 3×28×28.
+    Description: The BloodMNIST is based on a dataset of individual normal cells, captured from individuals without infection, hematologic or oncologic disease and free of any pharmacologic treatment at the moment of blood collection. It contains a total of 17,092 images and is organized into 8 classes. We split the source dataset with a ratio of 7:1:2 into training, validation and test set. The source images with resolution 3Ã—360Ã—363 pixels are center-cropped into 3Ã—200Ã—200, and then resized into 3Ã—28Ã—28.
     License: CC BY 4.0
