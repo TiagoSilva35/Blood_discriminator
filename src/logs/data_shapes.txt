@@ -1,2 +1,2 @@
-X shape: torch.Size([3421, 3, 28, 28])
-y shape: torch.Size([3421])
+X shape: torch.Size([11959, 3, 28, 28])
+y shape: torch.Size([11959])

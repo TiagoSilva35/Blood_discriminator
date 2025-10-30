@@ -12,13 +12,16 @@ class MLP(nn.Module):
         
         self.layers = nn.ModuleList()
         self.dropout = nn.Dropout(dropout_rate)
+        self.activations = nn.ModuleList()
         
         if len(hidden_sizes) == 0:
             self.layers.append(nn.Linear(input_size, num_classes))
         else:
             self.layers.append(nn.Linear(input_size, hidden_sizes[0]))
+            self.activations.append(nn.ReLU())
             for i in range(len(hidden_sizes) - 1):
                 self.layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i + 1]))
+                self.activations.append(nn.ReLU())
             self.layers.append(nn.Linear(hidden_sizes[-1], num_classes))
     
     def forward(self, x):
@@ -29,7 +32,7 @@ class MLP(nn.Module):
         # pass through all hidden layers with activations
         for i in range(len(self.layers) - 1):
             x = self.layers[i](x)
-            x = F.relu(x)
+            x = self.activations[i](x)
             x = self.dropout(x)
 
         # pass through the final layer (no activation)
