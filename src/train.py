@@ -31,8 +31,12 @@ def fit(
 
     # train the network
     loss_values = []
+    accuracy_values = []
     for epoch in range(n_epochs):
         accu_loss = 0
+        num_batches = 0
+        correct = 0
+        total = 0
         for i in range(0, X_train.size(0), batch_size):
             # select a batch (32 samples)
             end_idx = min(i + batch_size, X_train.size(0))
@@ -46,18 +50,28 @@ def fit(
             outputs = nn(X_batch)
             loss = criterion(outputs, y_batch)
             accu_loss += loss.item()
+            num_batches += 1
+            
+            # compute accuracy
+            _, predicted = torch.max(outputs.data, 1)
+            total += y_batch.size(0)
+            correct += (predicted == y_batch).sum().item()
 
             # backpropagation with optimization
             loss.backward()
             optimizer.step()
 
-        print("Epoch [{}/{}], Loss: {:.4f}".format(epoch + 1, n_epochs, accu_loss))
-        loss_values.append(accu_loss)
+        avg_loss = accu_loss / num_batches
+        accuracy = 100 * correct / total
+        accuracy_values.append(accuracy)
+        loss_values.append(avg_loss)
+        print("Epoch [{}/{}], Loss: {:.4f}".format(epoch + 1, n_epochs, avg_loss))
+        print("Training Accuracy: {:.2f}%".format(accuracy))
+    return loss_values, accuracy_values, nn.to("cpu")
 
-    return loss_values, nn.to("cpu")
 
-
-def evaluate(device, X_test, y_test, nn, to_device=True):
+def evaluate(device, X_test, y_test, nn, criterion, to_device=True):
+    assert criterion is not None, "Criterion must be provided for evaluation."
     # switch to evaluation mode
     nn.eval()
 
@@ -71,6 +85,8 @@ def evaluate(device, X_test, y_test, nn, to_device=True):
     with torch.no_grad():
         outputs = nn(X_test)
         _, predicted = torch.max(outputs.data, 1)
+        loss = criterion(outputs, y_test)
+        accuracy = 100 * (predicted == y_test).sum().item() / y_test.size(0)
 
     if to_device:
         predicted = predicted.to("cpu")
@@ -82,4 +98,4 @@ def evaluate(device, X_test, y_test, nn, to_device=True):
     CM = confusion_matrix(y_test, predicted)
     f1 = f1_score(y_test, predicted, average="weighted")
 
-    return CM, f1
+    return CM, f1, loss.item(), accuracy

@@ -1,6 +1,9 @@
 import os
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 def write_log(file_path, content):
     if not os.path.exists('logs'):
@@ -49,3 +52,64 @@ def get_metrics(cm):
 
     write_log('metrics.txt', f'Precision: {precision}\nSensitivity: {sensitivity}\nSpecificity: {specificity}\n') 
     return precision, sensitivity, specificity
+
+def plot_confusion_matrix(CM, n_classes):
+    # Plot the CM
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(CM, annot=True, fmt='d', cmap='Blues',
+                xticklabels=[str(i) for i in range(n_classes)],
+                yticklabels=[str(i) for i in range(n_classes)]) 
+    plt.title('Confusion Matrix')
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+
+
+def plot_acc(training_acc, test_acc):
+    plt.figure()
+    plt.plot(training_acc, label='Training Accuracy')
+    plt.plot(test_acc, label='Test Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Training and Test Accuracy over Epochs')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+
+def plot_loss(training_loss, test_loss):
+    plt.figure()
+    plt.plot(training_loss, label='Training Loss')
+    plt.plot(test_loss, label='Test Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Test Loss over Epochs')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+
+def plot_precision_recall(precision, recall, n_classes):
+    plt.figure(figsize=(10, 6))
+    for i in range(n_classes):
+        plt.plot(recall[i], precision[i], label=f'Class {i}')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+
+def plot_complexity_vs_performance(complexity, performance):
+    plt.figure()
+    plt.plot(complexity, performance, marker='o')
+    plt.xlabel('Model Complexity')
+    plt.ylabel('Performance Metric')
+    plt.title('Model Complexity vs Performance')
+    plt.grid()
+    plt.tight_layout()
+
+def create_plots(training_acc, test_acc, training_loss, test_loss, precision, recall, n_classes):
+    # plot_complexity_vs_performance(complexity, performance)
+    plot_acc(training_acc, test_acc)
+    plot_loss(training_loss, test_loss)
+    plot_precision_recall(precision, recall, n_classes)
+    plt.show()
