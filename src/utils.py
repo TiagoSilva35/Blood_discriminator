@@ -89,13 +89,19 @@ def plot_loss(training_loss, test_loss):
 
 def plot_precision_recall(precision, recall, n_classes):
     plt.figure(figsize=(10, 6))
-    for i in range(n_classes):
-        plt.plot(recall[i], precision[i], label=f'Class {i}')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision-Recall Curve')
+    x = np.arange(n_classes)
+    width = 0.35
+    
+    plt.bar(x - width/2, precision, width, label='Precision', alpha=0.8)
+    plt.bar(x + width/2, recall, width, label='Recall (Sensitivity)', alpha=0.8)
+    
+    plt.xlabel('Class')
+    plt.ylabel('Score')
+    plt.title('Precision and Recall per Class')
+    plt.xticks(x, [f'Class {i}' for i in range(n_classes)], rotation=45)
+    plt.ylim([0, 1.0])
     plt.legend()
-    plt.grid()
+    plt.grid(axis='y', alpha=0.3)
     plt.tight_layout()
 
 def plot_complexity_vs_performance(complexity, performance):
