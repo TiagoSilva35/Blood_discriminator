@@ -304,7 +304,20 @@ inability to adapt learning rates for individual parameters, leading to suboptim
 updates. In contrast, the Adam optimizer (Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced
 classification across classes, with fewer misclassifications. This further
 emphasizes Adam's effectiveness across several metrics.
+\newline
+\newline
+The F1 score, is around 0.80 for both configurations, with Adam slightly outperforming
+SGD with Momentum. This indicates that while both models are effective, and for simple tasks
+like this one the differences are not very pronounced, Adam provides a marginal advantage in balancing
+precision and recall (the thresholds are better optimized).
 
+
+\subsection{CNN}
+
+\subsection{Comparative Analysis}
+
+
+\newpage
 \begin{thebibliography}{10}
 
     \bibitem{esteva2019guide}

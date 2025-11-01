@@ -1,16 +1,16 @@
 Final Confusion Matrix:
-[[125   1   2  90   7  19   0   0]
- [  7 552   4  33   3  11  14   0]
- [  4   0 263  20   5   4   6   9]
- [ 17   7  21 435   9  76  13   1]
- [  5   0  51  27 157   3   0   0]
- [  5   0   1  89   1 187   1   0]
- [  0   8  60  66   1  15 514   2]
- [  0   0   9   0   0   0   0 461]]
-F1 Score: 0.7923
-Test Loss: 0.6180
-Test Accuracy: 78.75%
+[[190   6   0  16   6  24   2   0]
+ [  7 591   0   2   5   4  15   0]
+ [ 11   2 187  18  62   5  18   8]
+ [119  27   1 255  25  94  58   0]
+ [ 26   0   3   9 201   3   1   0]
+ [ 38   6   1  28   1 207   3   0]
+ [  1  15   6  16   9  12 605   2]
+ [  0   0   5   0   2   0   2 461]]
+F1 Score: 0.7843
+Test Loss: 0.5832
+Test Accuracy: 78.84%
 Complexity: 2,785,988 parameters
-Macro Precision: 0.7894
-Macro Sensitivity: 0.7564
-Macro Specificity: 0.9694
+Macro Precision: 0.7673
+Macro Sensitivity: 0.7766
+Macro Specificity: 0.9701
