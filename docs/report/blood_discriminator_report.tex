@@ -26,22 +26,17 @@ University of Coimbra\\
 
 \begin{abstract}
 Blood cell classification is a critical task in medical diagnosis and hematological analysis. 
-The present work conducts a comparative study between two deep learning architectures for blood cell
-classification supported by the BloodMNIST dataset. We implement and evaluate two neural network 
-architectures: a Convolutional Neural Network (CNN) and a Multi-Layer Neural Network (MLNN). 
-Besides implementation details we created an evaluation framework composed by three dimensions:
-quality (accuracy, precision, recall, F1-score), efficacy (sensitivity, specificity), 
-and efficiency (training time, inference time). Experimental results support the theoretical
-superiority of CNN architectures for image-based classification tasks, showing
-significantly better performance than traditional fully-connected networks although the imbalanced
-nature of the dataset poses challenges for both architectures.
+The present work conducts a comparative study between two deep learning architectures for blood cell classification supported by the BloodMNIST dataset. 
+We implement and evaluate two neural network architectures: a Convolutional Neural Network (CNN) and a Multi-Layer Neural Network (MLNN). 
+Besides implementation details we created an evaluation framework composed by three dimensions: quality (accuracy, precision, recall, F1-score), efficacy (sensitivity, specificity), and efficiency (training time, inference time). 
+Experimental results support the theoretical superiority of CNN architectures for image-based classification tasks, showing significantly better performance than traditional fully-connected networks although the imbalanced nature of the dataset poses challenges for both architectures.
 
 \keywords{Blood Cell Classification \and Deep Learning \and Multi-Layer Neural Networks \and Convolutional Neural Networks \and Medical Imaging \and BloodMNIST}
 \end{abstract}
 
 \section{Methodology}
-\subsection{Dataset}
 
+\subsection{Dataset}
 We utilize the BloodMNIST dataset from the MedMNIST collection. The dataset characteristics are:
 
 \begin{itemize}
@@ -53,58 +48,55 @@ We utilize the BloodMNIST dataset from the MedMNIST collection. The dataset char
     \item \textbf{Total}: 17,092 images
 \end{itemize}
 
+\noindent 
 Because the dataset is already preprocessed and normalized, we focus on the model architectures and training procedures rather than data augmentation techniques.
-As expected in medical datasets, class imbalance exists, with some cell types being underrepresented. This is addressed in the evaluation phase using metrics sensitive to class distribution
+As expected in medical datasets, class imbalance exists, with some cell types being underrepresented. 
+This is addressed in the evaluation phase using metrics sensitive to class distribution
 to ensure a more robust assessment of model performance.
+
 \subsection{Model Architectures}
 
 \subsubsection{Convolutional Neural Network (CNN)}
-
-Our CNN architecture consists of three convolutional blocks followed by fully-connected layers. The design follows the principle of progressively increasing feature channels while reducing spatial dimensions:
+Our CNN architecture consists of three convolutional blocks followed by fully-connected layers. 
+The design follows the principle of progressively increasing feature channels while reducing spatial dimensions:
 
 \begin{algorithm}
 \caption{CNN Architecture}
 \begin{algorithmic}[1]
 \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
-\STATE \textbf{Conv1:} Conv2d(3 $\rightarrow$ 32, kernel=3, padding=1) + ReLU + MaxPool(2)
+\STATE \textbf{Conv\textsubscript{1}:} Conv2d(3 $\rightarrow$ 32, kernel=3, padding=1) + ReLU + MaxPool(2)
 \STATE \quad Output: $\mathbb{R}^{B \times 32 \times 14 \times 14}$
-\STATE \textbf{Conv2:} Conv2d(32 $\rightarrow$ 64, kernel=3, padding=1) + ReLU + MaxPool(2)
+\STATE \textbf{Conv\textsubscript{2}:} Conv2d(32 $\rightarrow$ 64, kernel=3, padding=1) + ReLU + MaxPool(2)
 \STATE \quad Output: $\mathbb{R}^{B \times 64 \times 7 \times 7}$
-\STATE \textbf{Conv3:} Conv2d(64 $\rightarrow$ 128, kernel=3, padding=1) + ReLU + MaxPool(2)
+\STATE \textbf{Conv\textsubscript{3}:} Conv2d(64 $\rightarrow$ 128, kernel=3, padding=1) + ReLU + MaxPool(2)
 \STATE \quad Output: $\mathbb{R}^{B \times 128 \times 3 \times 3}$
 \STATE \textbf{Flatten:} $\mathbb{R}^{B \times 1152}$
-\STATE \textbf{FC1:} Linear(1152 $\rightarrow$ 256) + ReLU
-\STATE \textbf{FC2:} Linear(256 $\rightarrow$ 128) + ReLU
-\STATE \textbf{FC3:} Linear(128 $\rightarrow$ 8)
+\STATE \textbf{FC\textsubscript{1}:} Linear(1152 $\rightarrow$ 256) + ReLU
+\STATE \textbf{FC\textsubscript{2}:} Linear(256 $\rightarrow$ 128) + ReLU
+\STATE \textbf{FC\textsubscript{3}:} Linear(128 $\rightarrow$ 8)
 \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
 \end{algorithmic}
 \end{algorithm}
 
-The architecture rationale:
+\noindent 
+The architecture has 422,344 total parameters, and its rationale is as follows:
+
 \begin{itemize}
     \item \textbf{Progressive channel expansion} (32$\rightarrow$64$\rightarrow$128): Captures increasingly complex features
     \item \textbf{Spatial dimension reduction} (28$\rightarrow$14$\rightarrow$7$\rightarrow$3): Achieved through max-pooling with stride 2
-    \item \textbf{Padding=1}: Preserves spatial dimensions within each convolutional layer
+    \item \textbf{Unitary padding}: Preserves spatial dimensions within each convolutional layer
     \item \textbf{ReLU activation}: Introduces non-linearity and mitigates vanishing gradients
     \item \textbf{Multi-stage FC layers}: Provides smooth transition from feature maps to class predictions
 \end{itemize}
 
-Total parameters: 422,344 parameters.
-
-\textbf{Architecture Design Rationale:}
-
+\noindent 
 The number of convolutional layers resulted from balancing model complexity and computational efficiency.
-Given the input, we recognized that three convolutional layers would provide enough feature extraction
-while not over-reducing the spatial dimensions.
+Given the input, we recognized that three convolutional layers would provide enough feature extraction while not over-reducing the spatial dimensions.
 The channel progression and kernel sizes were selected based on established (state-of-the-art) CNN design principles proven and discussed in theoretical classes.
-In addition, the fully-connected layers were sized to gradually reduce the feature representation to the final class logits
-(preventing abrupt bottlenecks).
-Of course the design could be further optimized through hyperparameter tuning, but this architecture serves as a solid baseline
-(experimentally validated in the results section).
-
+Additionally, the fully-connected layers were sized to gradually reduce the feature representation to the final class logits (preventing abrupt bottlenecks).
+Though the design could certainly be further optimized through hyperparameter tuning, this architecture serves as a solid baseline (experimentally validated in the results section).
 
 \subsubsection{Multi-Layer Neural Network (MLNN)}
-
 The MLNN architecture uses only fully-connected layers:
 
 \begin{algorithm}
@@ -112,40 +104,30 @@ The MLNN architecture uses only fully-connected layers:
 \begin{algorithmic}[1]
 \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
 \STATE \textbf{Flatten:} $x \in \mathbb{R}^{B \times 2352}$ (where $2352 = 3 \times 28 \times 28$)
-\STATE \textbf{FC1:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
-\STATE \textbf{FC2-FCn:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
+\STATE \textbf{FC\textsubscript{1}:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
+\STATE \textbf{FC\textsubscript{2}-FC\textsubscript{n}:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
 \STATE \textbf{Output Layer:} Linear($h_n$ $\rightarrow$ 8)
 \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
 \end{algorithmic}
 \end{algorithm}
 
-Hidden layer size calculation:
+\noindent
+The size of the hidden layers in the network is calculated using the average of the input and output dimensions:
 \begin{equation}
 h = \frac{n_{input} + n_{classes}}{2} = \frac{2352 + 8}{2} = 1180
 \end{equation}
-
-This heuristic balances model capacity with computational efficiency.
-
-\textbf{Architecture Design Rationale:}
-
-The hidden layer size calculation using the average of input and output dimensions is a simple heuristic
-that provides reasonable capacity without excessive parameters. For a single hidden layer configuration,
-this results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces
-the network to learn compressed representations. While this approach can work for simple classification tasks,
-it fundamentally treats each pixel as an independent feature, ignoring the 2D spatial relationships that
-characterize cell morphology.
-
-The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred
-for image classification. The lack of translation invariance, the enormous first-layer parameter count
-(2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight
-the architectural advantages of convolutional approaches. This comparison validates theoretical understanding
-through empirical evidence in the context of blood cell classification.
+This heuristic provides reasonable capacity without excessive parameters. 
+For a single hidden layer configuration, it results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces the network to learn compressed representations. 
+While this approach can work for simple classification tasks, it fundamentally treats each pixel as an independent feature, ignoring the 2D spatial relationships that characterize cell morphology. \\
+\noindent
+The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred for image classification. 
+The lack of translation invariance, the enormous first-layer parameter count (2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight the architectural disadvantages of this approach when compared to convolutional ones. 
+As such, this work validates theoretical understanding through empirical evidence.
 
 \subsection{Training Configuration}
 
-Table~\ref{tab:hyperparameters} presents the complete hyperparameter configuration used in our experiments.
-
 \begin{table}[htbp]
+%\vspace{-0.5cm}
 \centering
 \caption{Experimental Hyperparameters}
 \label{tab:hyperparameters}
@@ -166,100 +148,100 @@ Activation Function & ReLU & ReLU \\
 \end{tabular}
 \end{table}
 
-\textbf{Training Configuration Rationale:}
+Table~\ref{tab:hyperparameters} presents the complete hyperparameter configuration used in our experiments, selected with the balance of convergence speed, computational efficiency, and generalization in mind.
+Several of these 
 
-The training configuration was selected to balance convergence speed, computational efficiency, and generalization performance.
-CrossEntropyLoss was chosen as the standard loss function for multi-class classification, combining LogSoftmax and NLLLoss
-for numerical stability. The Adam optimizer (with default parameters $\beta_1=0.9$, $\beta_2=0.999$) provides adaptive
-per-parameter learning rates that naturally handle the varying gradient magnitudes across different network depths,
-eliminating the need for manual learning rate scheduling in our 15-epoch training regime.
-
-The learning rate of 0.001 represents the standard default for Adam in computer vision tasks. Preliminary experiments
-(not detailed here) validated this choice: higher rates (0.01) caused training instability, while lower rates (0.0001)
-converged too slowly. The selected rate achieves smooth monotonic loss decrease (1.58 → 0.313) without oscillations,
-with test performance plateauing around epoch 12, indicating appropriate convergence behavior.
-
-A batch size of 128 samples was selected for computational and statistical reasons. This size fits comfortably in
-modern GPU memory while maximizing throughput, provides more stable gradient estimates than smaller mini-batches (32-64),
-and maintains reasonable generalization (very large batches can degrade generalization). With 11,959 training samples,
-this yields approximately 93 batches per epoch, sufficient for stable optimization.
-
-The 15-epoch training duration was determined empirically: training loss converges by epoch 10-12, and test performance
-plateaus around epoch 12 (86.82\% at epoch 12 vs 86.52\% at epoch 15). The minimal training-test accuracy gap (1.78\%)
-indicates healthy generalization without overfitting, suggesting that no additional regularization (dropout, weight decay,
-data augmentation) was necessary for this baseline. He initialization was used throughout, as it is specifically designed
-for ReLU activations and prevents vanishing/exploding gradients by maintaining variance across layers.
+\begin{itemize}
+    \item CrossEntropyLoss was chosen as the standard loss function for multi-class classification, combining LogSoftmax and NLLLoss for numerical stability.
+    \item The Adam optimizer (with default parameters $\beta_1=0.9$, $\beta_2=0.999$) allows the learning rate for each parameter to be adaptive, which handles the varying gradient magnitudes across different network depths and eliminates the need for manual learning rate scheduling.
+    \item The learning rate of 0.001 represents the standard default for Adam in computer vision tasks. 
+    Preliminary experiments validated this choice: higher rates (0.01) caused training instability, while lower rates (0.0001) converged too slowly. 
+    The selected rate achieves a smooth loss decrease (1.58 → 0.313) without oscillations, with test performance plateauing around epoch 12, indicating appropriate convergence behavior.
+    \item A batch size of 128 samples was selected for computational and statistical reasons. 
+    This size fits comfortably in modern GPU memory while maximizing throughput, provides more stable gradient estimates than smaller mini-batches (32-64), and maintains reasonable generalization (very large batches can degrade it). 
+    With 11,959 training samples, this yields approximately 93 batches per epoch, sufficient for stable optimization.
+    \item The 15-epoch training duration was determined empirically: training loss converges by epoch 10-12, and test performance plateaus around epoch 12 (86.82\% at epoch 12 vs 86.52\% at epoch 15). 
+    The minimal training-test accuracy gap (1.78\%) indicates healthy generalization without overfitting, suggesting that no additional regularization (dropout, weight decay, data augmentation) was necessary for this baseline. 
+    \item He initialization was used throughout, as it is specifically designed for ReLU activations and prevents vanishing/exploding gradients by maintaining variance across layers.
+\end{itemize}
 
 \subsection{Evaluation Metrics}
+To evaluate the performance of our models, we used quality metrics relevant to clinical practice, efficiency indicators, and result visualizations. 
+The chosen metrics are a good showcase of the challenges in clinical classifications, where both false positives and negatives can have important medical implications.
 
-The evaluation framework encompasses quality metrics with clinical relevance, efficiency indicators, and diagnostic visualizations. Metric selection was guided by the specific demands of multi-class blood cell classification where both false positives and false negatives carry medical consequences.
+\begin{itemize}
+    \item Precision for each class, calculated as $\text{Precision} = \frac{\text{TP}}{\text{TP} + \text{FP}}$, measuring how many predicted positives are correct. 
+    \item Recall (sensitivity), calculated as $\text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}}$, measures how many actual positives are detected. 
+    \item Specificity, calculated as $\text{Specificity} = \frac{\text{TN}}{\text{TN} + \text{FP}}$, shows how well the model avoids false positives. 
+    These three metrics treat all classes equally, regardless of their frequency, meaning rare classes are not ignored.
+    \item For quality assessment, accuracy gives a straightforward measure of overall correctness, calculated as $\text{Accuracy} = \frac{\text{TP} + \text{TN}}{\text{Total Samples}}$. 
+    While alone it can be misleading with imbalanced classes, the class sizes in BloodMNIST (243-666 samples per class) make it reasonable when combined with other metrics. 
+    \item The weighted F1-score, calculated as $F1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$, balances precision and recall, with class-specific F1 values weighted by support to reflect the dataset distribution, making it particularly relevant for clinical applications for the reason mentioned above.
+\end{itemize}
 
-For quality assessment, accuracy provides an intuitive overall correctness measure, computed as $\text{Accuracy} = \frac{\text{TP} + \text{TN}}{\text{Total Samples}}$. While potentially misleading under severe class imbalance, BloodMNIST's class sizes (ranging 243-666 samples) justify its use when complemented by precision and recall. The weighted F1-score balances precision and recall through their harmonic mean, $F1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$, with class-specific F1 values weighted by support to respect the dataset's distribution. This single-number metric proves essential for model comparison in hematology applications where both missed detections and false alarms are clinically problematic.
-
-Macro-averaged precision and recall treat all 8 cell types equally regardless of frequency, ensuring rare classes receive appropriate attention. Precision, defined per-class as $\text{Precision}_{\text{class}} = \frac{\text{TP}}{\text{TP} + \text{FP}}$ and averaged without weighting, measures prediction reliability and minimizes false alarms that trigger unnecessary follow-up testing. Sensitivity (recall), computed as $\text{Recall}_{\text{class}} = \frac{\text{TP}}{\text{TP} + \text{FN}}$, captures the critical ability to detect all positive cases—particularly important in medical contexts where missing abnormal cells can delay diagnosis. Specificity complements sensitivity by measuring true negative identification, $\text{Specificity}_{\text{class}} = \frac{\text{TN}}{\text{TN} + \text{FP}}$. In an 8-class problem where each positive class faces 7 "negative" alternatives, our achieved 98.03\% specificity demonstrates excellent discrimination.
-
-Efficiency metrics include parameter count (422,344 trainable parameters) as a proxy for memory requirements and deployment feasibility, relevant for edge devices and mobile microscopy platforms. Test loss provides a continuous, confidence-calibrated metric beyond discrete accuracy, with our value of 0.365 indicating well-calibrated predictions approaching the optimal zero.
-
-Visualization decisions support both performance diagnosis and error analysis. Training and test curves for loss and accuracy diagnose overfitting (diverging curves) versus underfitting (persistently high curves), revealing convergence behavior and informing regularization needs. The confusion matrix heatmap, implemented via Seaborn for publication-quality output, exposes specific inter-class confusions—diagonal dominance signals strong performance while off-diagonal patterns identify systematic errors like Class 3 (Erythroblast) acting as an attractor and Class 5 (Monocyte) proving problematic. The precision-recall bar chart displays side-by-side comparisons per class rather than traditional PR curves because our argmax classification uses fixed thresholds without threshold variation, making per-class bars more interpretable for identifying imbalanced precision/recall requiring targeted improvements.
-
-Implementation evaluates the full test set (3,421 samples) after each training epoch to track learning progression and generate curve data. This per-epoch evaluation strategy, computationally acceptable given dataset size, enables convergence monitoring and provides groundwork for future early stopping implementations.
+\noindent
+In this 8-class setting, each class is tested against the other 7, and the achieved 98.03\% specificity indicates strong discrimination. \\
+\noindent
+Efficiency metrics include the number of trainable parameters (422,344), a value which affects memory use and, as such, the feasibility for deployment on resource-limited devices. 
+Test loss gives a continuous measure of prediction quality, with a value of 0.365 indicating well-calibrated outputs. \\
+\noindent
+Visualizations help diagnose performance and errors. 
+Loss and accuracy curves for the training and test sets reveal convergence and possible overfitting or underfitting. 
+The confusion matrix heatmap (using the Python \texttt{seaborn} library) highlights which classes are often confused, such as frequent misclassification of Class 5 (Monocyte) as Class 3 (Erythroblast). 
+The precision-recall bar chart shows results for each class, making it easy to spot those with lower precision or recall. \\
+\noindent
+The implementation evaluates the full test set (3,421 samples) after each epoch, allowing detailed tracking of learning progress and supporting future improvements like early stopping.
 
 \subsection{Implementation Details}
 
-\textbf{Software Environment:}
-\begin{itemize}
-    \item Python 3.8+
-    \item PyTorch 1.10+ for deep learning framework
-    \item NumPy, scikit-learn for numerical operations and metrics
-    \item MedMNIST library for dataset access
-    \item Matplotlib and Seaborn for visualization
-\end{itemize}
+\subsubsection{Software}
+This project was implemented using Python, as used in the practical lessons, with the most recent versions being recommended for a guarantee of full compatibility. 
+It utilizes \texttt{torch} 1.10 or newer as the deep learning framework, along with \texttt{numpy} and \texttt{scikit-learn} for numerical operations and metrics. 
+The \texttt{MedMNIST} library is used for dataset access, while \texttt{matplotlib} and \texttt{seaborn} are employed for visualization.
 
-\textbf{Hardware:}
-\begin{itemize}
-    \item Automatic device selection: MPS (Apple Silicon) → CUDA (NVIDIA GPU) → CPU fallback
-    \item Training adapts to available hardware for maximum portability
-\end{itemize}
+\subsubsection{Hardware}
+The system is designed to automatically use the most suitable hardware available on the host machine: MPS (Apple Silicon) → CUDA (NVIDIA GPU) → CPU fallback.
+By dynamically selecting the optimal hardware backend, the training process takes advantage of hardware acceleration when available, significantly improving performance in a flexible manner (the codebase runs efficiently across a wide range of environments without manual configuration).
 
-\subsubsection{Key Implementation Decisions}
+% \subsubsection{Key Implementation Decisions}
 
-\paragraph{Data Processing:}
-\begin{itemize}
-    \item \textbf{Decision}: Process full dataset into tensors before training
-    \item \textbf{Rationale}: Small dataset (17K images) fits in memory; eliminates I/O overhead during training
-    \item \textbf{Trade-off}: Memory usage vs speed; acceptable for dataset size
-    \item \textbf{Batch Management}: Manual batching with proper handling of final partial batch
-\end{itemize}
+% \paragraph{Data Processing:}
+% \begin{itemize}
+%     \item \textbf{Decision}: Process full dataset into tensors before training
+%     \item \textbf{Rationale}: Small dataset (17K images) fits in memory; eliminates I/O overhead during training
+%     \item \textbf{Trade-off}: Memory usage vs speed; acceptable for dataset size
+%     \item \textbf{Batch Management}: Manual batching with proper handling of final partial batch
+% \end{itemize}
 
-\paragraph{Training Loop:}
-\begin{itemize}
-    \item \textbf{Decision}: Custom loop with per-epoch test evaluation
-    \item \textbf{Rationale}: Educational clarity, full control, enables detailed monitoring
-    \item \textbf{Loss Averaging}: Per-batch then per-epoch for comparable metrics
-    \item \textbf{Gradient Handling}: Standard zero\_grad() → forward → backward → step cycle
-\end{itemize}
+% \paragraph{Training Loop:}
+% \begin{itemize}
+%     \item \textbf{Decision}: Custom loop with per-epoch test evaluation
+%     \item \textbf{Rationale}: Educational clarity, full control, enables detailed monitoring
+%     \item \textbf{Loss Averaging}: Per-batch then per-epoch for comparable metrics
+%     \item \textbf{Gradient Handling}: Standard zero\_grad() → forward → backward → step cycle
+% \end{itemize}
 
-\paragraph{Evaluation Strategy:}
-\begin{itemize}
-    \item \textbf{Decision}: Full test set evaluation after each epoch
-    \item \textbf{Rationale}: Track convergence, identify overfitting, generate training curves
-    \item \textbf{Mode Switching}: Proper train/eval mode management for future dropout compatibility
-    \item \textbf{No Gradient}: \texttt{torch.no\_grad()} during evaluation saves memory
-\end{itemize}
+% \paragraph{Evaluation Strategy:}
+% \begin{itemize}
+%     \item \textbf{Decision}: Full test set evaluation after each epoch
+%     \item \textbf{Rationale}: Track convergence, identify overfitting, generate training curves
+%     \item \textbf{Mode Switching}: Proper train/eval mode management for future dropout compatibility
+%     \item \textbf{No Gradient}: \texttt{torch.no\_grad()} during evaluation saves memory
+% \end{itemize}
 
-\paragraph{Metric Computation:}
-\begin{itemize}
-    \item \textbf{Decision}: Custom confusion matrix-based metric calculation
-    \item \textbf{Rationale}: Full transparency, zero-division handling, educational value
-    \item \textbf{Macro Averaging}: Treats all classes equally, important for clinical fairness
-\end{itemize}
+% \paragraph{Metric Computation:}
+% \begin{itemize}
+%     \item \textbf{Decision}: Custom confusion matrix-based metric calculation
+%     \item \textbf{Rationale}: Full transparency, zero-division handling, educational value
+%     \item \textbf{Macro Averaging}: Treats all classes equally, important for clinical fairness
+% \end{itemize}
 
-\paragraph{Reproducibility:}
-\begin{itemize}
-    \item \textbf{Logging}: Comprehensive logging to separate files (training history, final results)
-    \item \textbf{Visualization}: Programmatic plot generation for analysis
-    \item \textbf{Device Agnostic}: Code runs across hardware platforms without modification
-\end{itemize}
+% \paragraph{Reproducibility:}
+% \begin{itemize}
+%     \item \textbf{Logging}: Comprehensive logging to separate files (training history, final results)
+%     \item \textbf{Visualization}: Programmatic plot generation for analysis
+%     \item \textbf{Device Agnostic}: Code runs across hardware platforms without modification
+% \end{itemize}
 
 \section{Results}
 
@@ -501,7 +483,7 @@ This study establishes a strong baseline for blood cell classification with CNNs
 
 \section*{Reproducibility Statement}
 
-All code, model configurations, and experimental settings are available in the project repository. The implementation uses standard PyTorch operations and the publicly available BloodMNIST dataset from the MedMNIST collection. Specific hyperparameters are detailed in Table~\ref{tab:hyperparameters}, and the training procedure follows standard practices with fixed random seeds for reproducibility.
+All code, model configurations, and experimental settings are available in the project repository. The implementation uses standard \texttt{torch} operations and the publicly available BloodMNIST dataset from the MedMNIST collection. Specific hyperparameters are detailed in Table~\ref{tab:hyperparameters}, and the training procedure follows standard practices with fixed random seeds for reproducibility.
 
 \section*{Acknowledgments}
 
