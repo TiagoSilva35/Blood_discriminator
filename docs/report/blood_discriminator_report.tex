@@ -10,6 +10,7 @@
 \usepackage{hyperref}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{subcaption}
 
 \begin{document}
 
@@ -19,25 +20,26 @@
 \authorrunning{Miguel Cabral Pinto \& Tiago Silva}
 
 \institute{
-University of Coimbra\\
+    University of Coimbra\\
 }
 
 \maketitle
 
 \begin{abstract}
-Blood cell classification is a critical task in medical diagnosis and hematological analysis. 
-The present work conducts a comparative study between two deep learning architectures for blood cell classification supported by the BloodMNIST dataset. 
-We implement and evaluate two neural network architectures: a Convolutional Neural Network (CNN) and a Multi-Layer Neural Network (MLNN). 
-Besides implementation details we created an evaluation framework composed by three dimensions: quality (accuracy, precision, recall, F1-score), efficacy (sensitivity, specificity), and efficiency (training time, inference time). 
-Experimental results support the theoretical superiority of CNN architectures for image-based classification tasks, showing significantly better performance than traditional fully-connected networks although the imbalanced nature of the dataset poses challenges for both architectures.
+    Blood cell classification is a critical task in medical diagnosis and hematological analysis.
+    The present work conducts a comparative study between two deep learning architectures for blood cell classification supported by the BloodMNIST dataset.
+    We implement and evaluate two neural network architectures: a Convolutional Neural Network (CNN) and a Multi-Layer Neural Network (MLNN).
+    Besides implementation details we created an evaluation framework composed by three dimensions: quality (accuracy, precision, recall, F1-score), efficacy (sensitivity, specificity), and efficiency (training time, inference time).
+    Experimental results support the theoretical superiority of CNN architectures for image-based classification tasks, showing significantly better performance than traditional fully-connected networks although the imbalanced nature of the dataset poses challenges for both architectures.
 
-\keywords{Blood Cell Classification \and Deep Learning \and Multi-Layer Neural Networks \and Convolutional Neural Networks \and Medical Imaging \and BloodMNIST}
+    \keywords{Blood Cell Classification \and Deep Learning \and Multi-Layer Neural Networks \and Convolutional Neural Networks \and Medical Imaging \and BloodMNIST}
 \end{abstract}
 
 \section{Methodology}
 
 \subsection{Dataset}
-We utilize the BloodMNIST dataset from the MedMNIST collection. The dataset characteristics are:
+We utilize the BloodMNIST dataset from the MedMNIST collection. The dataset
+characteristics are:
 
 \begin{itemize}
     \item \textbf{Image Size}: 28$\times$28 pixels, RGB (3 channels)
@@ -48,37 +50,38 @@ We utilize the BloodMNIST dataset from the MedMNIST collection. The dataset char
     \item \textbf{Total}: 17,092 images
 \end{itemize}
 
-\noindent 
+\noindent
 Because the dataset is already preprocessed and normalized, we focus on the model architectures and training procedures rather than data augmentation techniques.
-As expected in medical datasets, class imbalance exists, with some cell types being underrepresented. 
+As expected in medical datasets, class imbalance exists, with some cell types being underrepresented.
 This is addressed in the evaluation phase using metrics sensitive to class distribution
 to ensure a more robust assessment of model performance.
 
 \subsection{Model Architectures}
 
 \subsubsection{Convolutional Neural Network (CNN)}
-Our CNN architecture consists of three convolutional blocks followed by fully-connected layers. 
-The design follows the principle of progressively increasing feature channels while reducing spatial dimensions:
+Our CNN architecture consists of three convolutional blocks followed by
+fully-connected layers. The design follows the principle of progressively
+increasing feature channels while reducing spatial dimensions:
 
 \begin{algorithm}
-\caption{CNN Architecture}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
-\STATE \textbf{Conv\textsubscript{1}:} Conv2d(3 $\rightarrow$ 32, kernel=3, padding=1) + ReLU + MaxPool(2)
-\STATE \quad Output: $\mathbb{R}^{B \times 32 \times 14 \times 14}$
-\STATE \textbf{Conv\textsubscript{2}:} Conv2d(32 $\rightarrow$ 64, kernel=3, padding=1) + ReLU + MaxPool(2)
-\STATE \quad Output: $\mathbb{R}^{B \times 64 \times 7 \times 7}$
-\STATE \textbf{Conv\textsubscript{3}:} Conv2d(64 $\rightarrow$ 128, kernel=3, padding=1) + ReLU + MaxPool(2)
-\STATE \quad Output: $\mathbb{R}^{B \times 128 \times 3 \times 3}$
-\STATE \textbf{Flatten:} $\mathbb{R}^{B \times 1152}$
-\STATE \textbf{FC\textsubscript{1}:} Linear(1152 $\rightarrow$ 256) + ReLU
-\STATE \textbf{FC\textsubscript{2}:} Linear(256 $\rightarrow$ 128) + ReLU
-\STATE \textbf{FC\textsubscript{3}:} Linear(128 $\rightarrow$ 8)
-\STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
-\end{algorithmic}
+    \caption{CNN Architecture}
+    \begin{algorithmic}[1]
+        \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
+        \STATE \textbf{Conv\textsubscript{1}:} Conv2d(3 $\rightarrow$ 32, kernel=3, padding=1) + ReLU + MaxPool(2)
+        \STATE \quad Output: $\mathbb{R}^{B \times 32 \times 14 \times 14}$
+        \STATE \textbf{Conv\textsubscript{2}:} Conv2d(32 $\rightarrow$ 64, kernel=3, padding=1) + ReLU + MaxPool(2)
+        \STATE \quad Output: $\mathbb{R}^{B \times 64 \times 7 \times 7}$
+        \STATE \textbf{Conv\textsubscript{3}:} Conv2d(64 $\rightarrow$ 128, kernel=3, padding=1) + ReLU + MaxPool(2)
+        \STATE \quad Output: $\mathbb{R}^{B \times 128 \times 3 \times 3}$
+        \STATE \textbf{Flatten:} $\mathbb{R}^{B \times 1152}$
+        \STATE \textbf{FC\textsubscript{1}:} Linear(1152 $\rightarrow$ 256) + ReLU
+        \STATE \textbf{FC\textsubscript{2}:} Linear(256 $\rightarrow$ 128) + ReLU
+        \STATE \textbf{FC\textsubscript{3}:} Linear(128 $\rightarrow$ 8)
+        \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
+    \end{algorithmic}
 \end{algorithm}
 
-\noindent 
+\noindent
 The architecture has 422,344 total parameters, and its rationale is as follows:
 
 \begin{itemize}
@@ -89,7 +92,7 @@ The architecture has 422,344 total parameters, and its rationale is as follows:
     \item \textbf{Multi-stage FC layers}: Provides smooth transition from feature maps to class predictions
 \end{itemize}
 
-\noindent 
+\noindent
 The number of convolutional layers resulted from balancing model complexity and computational efficiency.
 Given the input, we recognized that three convolutional layers would provide enough feature extraction while not over-reducing the spatial dimensions.
 The channel progression and kernel sizes were selected based on established (state-of-the-art) CNN design principles proven and discussed in theoretical classes.
@@ -100,431 +103,244 @@ Though the design could certainly be further optimized through hyperparameter tu
 The MLNN architecture uses only fully-connected layers:
 
 \begin{algorithm}
-\caption{MLNN Architecture}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
-\STATE \textbf{Flatten:} $x \in \mathbb{R}^{B \times 2352}$ (where $2352 = 3 \times 28 \times 28$)
-\STATE \textbf{FC\textsubscript{1}:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
-\STATE \textbf{FC\textsubscript{2}-FC\textsubscript{n}:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
-\STATE \textbf{Output Layer:} Linear($h_n$ $\rightarrow$ 8)
-\STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
-\end{algorithmic}
+    \caption{MLNN Architecture}
+    \begin{algorithmic}[1]
+        \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
+        \STATE \textbf{Flatten:} $x \in \mathbb{R}^{B \times 2352}$ (where $2352 = 3 \times 28 \times 28$)
+        \STATE \textbf{FC\textsubscript{1}:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
+        \STATE \textbf{FC\textsubscript{2}-FC\textsubscript{n}:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
+        \STATE \textbf{Output Layer:} Linear($h_n$ $\rightarrow$ 8)
+        \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
+    \end{algorithmic}
 \end{algorithm}
 
 \noindent
 The size of the hidden layers in the network is calculated using the average of the input and output dimensions:
 \begin{equation}
-h = \frac{n_{input} + n_{classes}}{2} = \frac{2352 + 8}{2} = 1180
+    h = \frac{n_{input} + n_{classes}}{2} = \frac{2352 + 8}{2} = 1180
 \end{equation}
-This heuristic provides reasonable capacity without excessive parameters. 
-For a single hidden layer configuration, it results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces the network to learn compressed representations. 
+This heuristic provides reasonable capacity without excessive parameters.
+For a single hidden layer configuration, it results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces the network to learn compressed representations.
 While this approach can work for simple classification tasks, it fundamentally treats each pixel as an independent feature, ignoring the 2D spatial relationships that characterize cell morphology. \\
 \noindent
-The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred for image classification. 
-The lack of translation invariance, the enormous first-layer parameter count (2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight the architectural disadvantages of this approach when compared to convolutional ones. 
+The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred for image classification.
+The lack of translation invariance, the enormous first-layer parameter count (2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight the architectural disadvantages of this approach when compared to convolutional ones.
 As such, this work validates theoretical understanding through empirical evidence.
 
-\subsection{Training Configuration}
+\subsection{Training Configuration: MLNN}
 
 \begin{table}[htbp]
-%\vspace{-0.5cm}
-\centering
-\caption{Experimental Hyperparameters}
-\label{tab:hyperparameters}
-\begin{tabular}{lll}
-\toprule
-\textbf{Parameter} & \textbf{CNN} & \textbf{DNN} \\
-\midrule
-Learning Rate & 0.001 & 0.01 \\
-Optimizer & Adam & Adam \\
-Loss Function & CrossEntropyLoss & CrossEntropyLoss \\
-Batch Size & 128 & 128 \\
-Epochs & 15 & 10 \\
-Hidden Layers & - & 1 \\
-Hidden Size & - & 1180 \\
-Weight Initialization & He & He \\
-Activation Function & ReLU & ReLU \\
-\bottomrule
-\end{tabular}
+    %\vspace{-0.5cm}
+    \centering
+    \caption{Experimental Hyperparameters}
+    \label{tab:hyperparametersMLNN}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Parameter}  & \textbf{MLNN-Test1} & \textbf{MLNN-Test2}   \\
+        \midrule
+        Learning Rate       & 0.001               & 0.01                  \\
+        Optimizer           & Adam                & SGD w/ Momentum (0.9) \\
+        Loss Function       & CrossEntropyLoss    & CrossEntropyLoss      \\
+        Epochs              & 15                  & 15                    \\
+        Hidden Layers       & 1                   & 1                     \\
+        Hidden Size         & 1180                & 1180                  \\
+        Activation Function & ReLU                & ReLU                  \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
-Table~\ref{tab:hyperparameters} presents the complete hyperparameter configuration used in our experiments, selected with the balance of convergence speed, computational efficiency, and generalization in mind.
-Several of these 
+Table~\ref{tab:hyperparametersMLNN} presents the complete hyperparameter
+configuration used in our experiments, chosen to both experiment with different
+training dynamics and provide a solid baseline for comparison with the CNN
+architecture.
 
+Here are the main reasons behind our choices:
 \begin{itemize}
-    \item CrossEntropyLoss was chosen as the standard loss function for multi-class classification, combining LogSoftmax and NLLLoss for numerical stability.
-    \item The Adam optimizer (with default parameters $\beta_1=0.9$, $\beta_2=0.999$) allows the learning rate for each parameter to be adaptive, which handles the varying gradient magnitudes across different network depths and eliminates the need for manual learning rate scheduling.
-    \item The learning rate of 0.001 represents the standard default for Adam in computer vision tasks. 
-    Preliminary experiments validated this choice: higher rates (0.01) caused training instability, while lower rates (0.0001) converged too slowly. 
-    The selected rate achieves a smooth loss decrease (1.58 → 0.313) without oscillations, with test performance plateauing around epoch 12, indicating appropriate convergence behavior.
-    \item A batch size of 128 samples was selected for computational and statistical reasons. 
-    This size fits comfortably in modern GPU memory while maximizing throughput, provides more stable gradient estimates than smaller mini-batches (32-64), and maintains reasonable generalization (very large batches can degrade it). 
-    With 11,959 training samples, this yields approximately 93 batches per epoch, sufficient for stable optimization.
-    \item The 15-epoch training duration was determined empirically: training loss converges by epoch 10-12, and test performance plateaus around epoch 12 (86.82\% at epoch 12 vs 86.52\% at epoch 15). 
-    The minimal training-test accuracy gap (1.78\%) indicates healthy generalization without overfitting, suggesting that no additional regularization (dropout, weight decay, data augmentation) was necessary for this baseline. 
-    \item He initialization was used throughout, as it is specifically designed for ReLU activations and prevents vanishing/exploding gradients by maintaining variance across layers.
+    \item CrossEntropyLoss was chosen as the standard loss function for multi-class
+          classification, combining LogSoftmax and NLLLoss for numerical stability. This
+          is particularly important given the class imbalanced nature of the dataset,
+          CrossEntropyLoss poses a powerful approach to handle such scenarios by
+          adjusting class influence through customized weighting if necessary.
+    \item The state of the art Adam optimizer handles the varying gradient magnitudes
+          across different network depths was selected due to its innovative adaptive
+          learning rate mechanism, combining the benefits of RMSProp and momentum-based
+          SGD. To compare with the forementioned momentum-based SGD optimizer, we also
+          implemented the same MLNN using this optimizer (with momentum set to 0.9) and a
+          higher learning rate (0.01 because in contrast to Adam, SGD lacks adaptive
+          learning rates, therefore, a higher initial learning rate is necessary to
+          achieve comparable performance).
+    \item The 0.001 learning rate represents the standard default for Adam in computer
+          vision tasks. Preliminary experiments (not detailed here) validated this
+          choice: higher rates (0.01) caused training instability, while lower rates
+          (0.0001) converged too slowly. The selected rate achieves a smooth loss
+          decrease (1.58 → 0.313) without oscillations, with test performance plateauing
+          around epoch 12, indicating appropriate convergence behavior.
+    \item The 15-epoch training duration was determined empirically.
+    \item He initialization was used throughout, as it is specifically designed for ReLU
+          activations and prevents vanishing/exploding gradients by maintaining variance
+          across layers.
 \end{itemize}
 
-\subsection{Evaluation Metrics}
-To evaluate the performance of our models, we used quality metrics relevant to clinical practice, efficiency indicators, and result visualizations. 
-The chosen metrics are a good showcase of the challenges in clinical classifications, where both false positives and negatives can have important medical implications.
-
-\begin{itemize}
-    \item Precision for each class, calculated as $\text{Precision} = \frac{\text{TP}}{\text{TP} + \text{FP}}$, measuring how many predicted positives are correct. 
-    \item Recall (sensitivity), calculated as $\text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}}$, measures how many actual positives are detected. 
-    \item Specificity, calculated as $\text{Specificity} = \frac{\text{TN}}{\text{TN} + \text{FP}}$, shows how well the model avoids false positives. 
-    These three metrics treat all classes equally, regardless of their frequency, meaning rare classes are not ignored.
-    \item For quality assessment, accuracy gives a straightforward measure of overall correctness, calculated as $\text{Accuracy} = \frac{\text{TP} + \text{TN}}{\text{Total Samples}}$. 
-    While alone it can be misleading with imbalanced classes, the class sizes in BloodMNIST (243-666 samples per class) make it reasonable when combined with other metrics. 
-    \item The weighted F1-score, calculated as $F1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$, balances precision and recall, with class-specific F1 values weighted by support to reflect the dataset distribution, making it particularly relevant for clinical applications for the reason mentioned above.
-\end{itemize}
-
-\noindent
-In this 8-class setting, each class is tested against the other 7, and the achieved 98.03\% specificity indicates strong discrimination. \\
-\noindent
-Efficiency metrics include the number of trainable parameters (422,344), a value which affects memory use and, as such, the feasibility for deployment on resource-limited devices. 
-Test loss gives a continuous measure of prediction quality, with a value of 0.365 indicating well-calibrated outputs. \\
-\noindent
-Visualizations help diagnose performance and errors. 
-Loss and accuracy curves for the training and test sets reveal convergence and possible overfitting or underfitting. 
-The confusion matrix heatmap (using the Python \texttt{seaborn} library) highlights which classes are often confused, such as frequent misclassification of Class 5 (Monocyte) as Class 3 (Erythroblast). 
-The precision-recall bar chart shows results for each class, making it easy to spot those with lower precision or recall. \\
-\noindent
-The implementation evaluates the full test set (3,421 samples) after each epoch, allowing detailed tracking of learning progress and supporting future improvements like early stopping.
-
-\subsection{Implementation Details}
-
-\subsubsection{Software}
-This project was implemented using Python, as used in the practical lessons, with the most recent versions being recommended for a guarantee of full compatibility. 
-It utilizes \texttt{torch} 1.10 or newer as the deep learning framework, along with \texttt{numpy} and \texttt{scikit-learn} for numerical operations and metrics. 
-The \texttt{MedMNIST} library is used for dataset access, while \texttt{matplotlib} and \texttt{seaborn} are employed for visualization.
-
-\subsubsection{Hardware}
-The system is designed to automatically use the most suitable hardware available on the host machine: MPS (Apple Silicon) → CUDA (NVIDIA GPU) → CPU fallback.
-By dynamically selecting the optimal hardware backend, the training process takes advantage of hardware acceleration when available, significantly improving performance in a flexible manner (the codebase runs efficiently across a wide range of environments without manual configuration).
-
-% \subsubsection{Key Implementation Decisions}
-
-% \paragraph{Data Processing:}
-% \begin{itemize}
-%     \item \textbf{Decision}: Process full dataset into tensors before training
-%     \item \textbf{Rationale}: Small dataset (17K images) fits in memory; eliminates I/O overhead during training
-%     \item \textbf{Trade-off}: Memory usage vs speed; acceptable for dataset size
-%     \item \textbf{Batch Management}: Manual batching with proper handling of final partial batch
-% \end{itemize}
-
-% \paragraph{Training Loop:}
-% \begin{itemize}
-%     \item \textbf{Decision}: Custom loop with per-epoch test evaluation
-%     \item \textbf{Rationale}: Educational clarity, full control, enables detailed monitoring
-%     \item \textbf{Loss Averaging}: Per-batch then per-epoch for comparable metrics
-%     \item \textbf{Gradient Handling}: Standard zero\_grad() → forward → backward → step cycle
-% \end{itemize}
-
-% \paragraph{Evaluation Strategy:}
-% \begin{itemize}
-%     \item \textbf{Decision}: Full test set evaluation after each epoch
-%     \item \textbf{Rationale}: Track convergence, identify overfitting, generate training curves
-%     \item \textbf{Mode Switching}: Proper train/eval mode management for future dropout compatibility
-%     \item \textbf{No Gradient}: \texttt{torch.no\_grad()} during evaluation saves memory
-% \end{itemize}
-
-% \paragraph{Metric Computation:}
-% \begin{itemize}
-%     \item \textbf{Decision}: Custom confusion matrix-based metric calculation
-%     \item \textbf{Rationale}: Full transparency, zero-division handling, educational value
-%     \item \textbf{Macro Averaging}: Treats all classes equally, important for clinical fairness
-% \end{itemize}
-
-% \paragraph{Reproducibility:}
-% \begin{itemize}
-%     \item \textbf{Logging}: Comprehensive logging to separate files (training history, final results)
-%     \item \textbf{Visualization}: Programmatic plot generation for analysis
-%     \item \textbf{Device Agnostic}: Code runs across hardware platforms without modification
-% \end{itemize}
-
+\newpage
 \section{Results}
+In this section we first present and analyze the results obtained with each type of 
+deep learning architecture: MLNN and CNN. Then we proceed to a comparative analysis between both.
+\subsection{MLNN}
+Two MLNN configurations were tested, differing in optimizer and learning rate
+(as detailed in Table~\ref{tab:hyperparametersMLNN}). Let's analyze the results
+and make some observations.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test1_loss.png}
+        \caption{(Adam, lr=0.001)}
+        \label{fig:mlnn_test1_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test2_loss.png}
+        \caption{(SGD+Momentum, lr=0.01)}
+        \label{fig:mlnn_test2_loss}
+    \end{subfigure}
+    \caption{Loss curves comparison between MLNN configurations}
+    \label{fig:mlnn_loss_comparison}
+\end{figure}
 
-\subsection{Training Dynamics}
+Looking at the loss curves in Figure~\ref{fig:mlnn_loss_comparison}, we can see
+that both configurations show a decreasing trend, indicating that the models
+are learning. However, the Adam optimizer (Figure~\ref{fig:mlnn_test1_loss})
+demonstrates a more stable and consistent decrease in loss compared to the SGD
+with Momentum (Figure~\ref{fig:mlnn_test2_loss}), which exhibits a more erratic
+pattern, oscillating significantly during training. This suggests that Adam is
+better suited because not only does it adapt the learning rate for each
+parameter, but it also combines the benefits of both momentum and RMSProp,
+leading to more efficient convergence. This is a relatively simple task, hence
+both optimizers manage to reduce the loss. If this were a more complex task,
+the differences would be more pronounced.
 
-The training process was monitored across 15 epochs for the CNN model. The training and test loss/accuracy curves demonstrate the model's learning progression:
+\newpage
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test1_accuracy.png}
+        \caption{(Adam, lr=0.001)}
+        \label{fig:mlnn_test1_acc}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test2_accuracy.png}
+        \caption{(SGD+Momentum, lr=0.01)}
+        \label{fig:mlnn_test2_acc}
+    \end{subfigure}
+    \caption{Accuracy curves comparison between MLNN configurations}
+    \label{fig:mlnn_acc_comparison}
+\end{figure}
 
-\begin{itemize}
-    \item \textbf{Initial Loss}: Training loss starts at 1.58, rapidly decreasing to 0.93 by epoch 2
-    \item \textbf{Convergence}: Both training and test losses converge around epoch 10-12
-    \item \textbf{Final Training Loss}: 0.313 (epoch 15)
-    \item \textbf{Final Test Loss}: 0.365 (epoch 15)
-    \item \textbf{Training Accuracy}: Improves from 38.8\% to 88.3\%
-    \item \textbf{Test Accuracy}: Improves from 51.6\% to 86.5\%
-    \item \textbf{Overfitting}: Minimal gap between training (88.3\%) and test (86.5\%) accuracy indicates good generalization
-\end{itemize}
+Similarly, the accuracy curves in Figure~\ref{fig:mlnn_acc_comparison} show
+that the Adam optimizer achieves higher accuracy more quickly than SGD with
+Momentum. The Adam configuration reaches approximately 85\% accuracy by epoch
+10, while the SGD configuration lags behind, only reaching around 75\% accuracy
+by the same epoch. This further supports the conclusion that Adam's adaptive
+learning rates and momentum mechanisms provide a significant advantage in
+training efficiency.
 
-The smooth convergence without significant oscillations suggests that the learning rate (0.001) and batch size (128) are well-tuned for this task. The F1-score improves steadily from 0.447 (epoch 1) to 0.866 (epoch 15), demonstrating consistent learning across all classes.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test1_sens_recall.png}
+        \caption{MLNN-Test1}
+        \label{fig:mlnn_test1_pr}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test2_sens_recall.png}
+        \caption{MLNN-Test2}
+        \label{fig:mlnn_test2_pr}
+    \end{subfigure}
+    \caption{Precision and Recall comparison across classes}
+    \label{fig:mlnn_pr_comparison}
+\end{figure}
 
-\subsection{Classification Performance}
+The bar charts in Figure~\ref{fig:mlnn_pr_comparison} illustrate the precision
+and recall for each class in both MLNN configurations. We observe that the Adam
+optimizer (Figure~\ref{fig:mlnn_test1_pr}) generally outperforms the SGD with
+Momentum (Figure~\ref{fig:mlnn_test2_pr}) across most classes. Notably, classes
+with fewer samples (such as class 0) exhibit lower precision and recall in both
+configurations, highlighting the challenges posed by class imbalance. Despite
+in most classes the recall and precision values are relatively high, indicating
+that the models thresholds are effective at identifying the majority of
+instances correctly, there is still room for improvement, especially for
+underrepresented classes.
 
-Table~\ref{tab:results} presents the comprehensive evaluation results on the test set for the CNN model.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test1_CM.png}
+        \caption{MLNN-Test1}
+        \label{fig:mlnn_test1_cm}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/mlnn_test2_CM.png}
+        \caption{MLNN-Test2}
+        \label{fig:mlnn_test2_cm}
+    \end{subfigure}
+    \caption{Confusion matrices for both MLNN configurations}
+    \label{fig:mlnn_cm_comparison}
+\end{figure}
 
-\begin{table}[htbp]
-\centering
-\caption{CNN Model Performance on BloodMNIST Test Set}
-\label{tab:results}
-\begin{tabular}{lc}
-\toprule
-\textbf{Metric} & \textbf{CNN} \\
-\midrule
-\multicolumn{2}{c}{\textit{Quality Metrics}} \\
-Accuracy & 86.52\% \\
-F1-Score (weighted) & 0.8664 \\
-\midrule
-\multicolumn{2}{c}{\textit{Efficacy Metrics}} \\
-Precision (macro avg) & 0.8735 \\
-Sensitivity/Recall (macro avg) & 0.8288 \\
-Specificity (macro avg) & 0.9803 \\
-\midrule
-\multicolumn{2}{c}{\textit{Efficiency Metrics}} \\
-Test Loss & 0.3650 \\
-Parameters & 422,344 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The CNN model achieves strong performance across all metrics:
-\begin{itemize}
-    \item \textbf{High Accuracy}: 86.52\% correct classification on unseen test data
-    \item \textbf{Balanced Performance}: F1-score of 0.8664 indicates good balance between precision and recall
-    \item \textbf{Excellent Specificity}: 98.03\% average specificity shows the model correctly identifies negative cases
-    \item \textbf{Good Sensitivity}: 82.88\% average sensitivity demonstrates strong true positive detection
-    \item \textbf{Compact Model}: Only 422K parameters, enabling efficient deployment
-\end{itemize}
-
-\subsection{Confusion Matrix Analysis}
-
-The confusion matrix reveals detailed per-class performance patterns (Figure~\ref{fig:confusion_matrix}):
-
-\textbf{Strong Performance Classes:}
-\begin{itemize}
-    \item \textbf{Class 1} (Eosinophil): 581/624 correct (93.1\%) - best performing class
-    \item \textbf{Class 6} (Neutrophil): 638/666 correct (95.8\%) - excellent performance
-    \item \textbf{Class 7} (Platelet): 462/470 correct (98.3\%) - nearly perfect
-\end{itemize}
-
-\textbf{Challenging Classes:}
-\begin{itemize}
-    \item \textbf{Class 0} (Basophil): 189/243 correct (77.8\%) - frequently confused with Class 3 (45 misclassifications)
-    \item \textbf{Class 4} (Lymphocyte): 197/243 correct (81.1\%) - confused with Class 3 (36 cases)
-    \item \textbf{Class 5} (Monocyte): 156/284 correct (54.9\%) - highest confusion with Class 3 (106 cases)
-\end{itemize}
-
-\textbf{Key Patterns:}
-\begin{itemize}
-    \item \textbf{Class 3 Attraction}: Multiple classes misclassified as Class 3 (Erythroblast), suggesting visual similarity
-    \item \textbf{Diagonal Dominance}: Strong diagonal indicates overall good classification
-    \item \textbf{Rare Confusions}: Very few off-diagonal entries for Classes 6 and 7
-\end{itemize}
-
-These patterns suggest that morphological similarities between certain blood cell types (particularly involving Class 3) present the main challenge for the classifier.
-
-\subsection{Architectural Analysis}
-
-\textbf{CNN Architecture Strengths:}
-
-Our implemented CNN demonstrates several key advantages for blood cell classification:
-
-\begin{itemize}
-    \item \textbf{Spatial Feature Learning}: Three convolutional blocks (32→64→128 channels) progressively extract hierarchical features from cell morphology
-    \item \textbf{Parameter Efficiency}: 422,344 parameters enables efficient training and deployment
-    \item \textbf{Translation Invariance}: Max-pooling provides robustness to cell positioning variations
-    \item \textbf{Local Connectivity}: Convolutions preserve spatial relationships critical for distinguishing cell types
-    \item \textbf{Hierarchical Abstraction}: Low-level features (edges, textures) combine into high-level representations (cell shapes, internal structures)
-\end{itemize}
-
-\textbf{Performance Characteristics:}
-\begin{itemize}
-    \item Achieves 86.52\% test accuracy with stable training
-    \item Minimal overfitting: 1.78\% gap between training (88.3\%) and test (86.5\%) accuracy
-    \item Strong generalization: macro-averaged precision 87.35\%, recall 82.88\%
-    \item Excellent specificity: 98.03\% indicates low false positive rate
-    \item Compact model size: 422K parameters suitable for edge deployment
-\end{itemize}
-
-\subsection{Visualization Analysis}
-
-The implementation generates four key visualizations:
-
-\begin{enumerate}
-    \item \textbf{Training vs Test Loss}: Demonstrates smooth convergence from 1.58 to 0.313 (training) and 1.18 to 0.365 (test), with close tracking indicating good regularization
-    
-    \item \textbf{Training vs Test Accuracy}: Shows consistent improvement from 38.8\% to 88.3\% (training) and 51.6\% to 86.5\% (test), validating model learning
-    
-    \item \textbf{Confusion Matrix Heatmap}: Reveals per-class performance with strong diagonal, identifying Class 3 (Erythroblast) as a frequent misclassification target
-    
-    \item \textbf{Precision-Recall Bar Chart}: Displays per-class metrics, highlighting Classes 6 and 7 as top performers and Class 5 as needing improvement
-\end{enumerate}
-
-These visualizations enable comprehensive model diagnosis and identify specific areas for future optimization.
-
-\section{Discussion}
-
-\subsection{Performance Analysis}
-
-The CNN model achieves strong performance (86.52\% accuracy, 0.866 F1-score) on the BloodMNIST dataset, demonstrating the effectiveness of convolutional architectures for blood cell classification. Several factors contribute to this success:
-
-\begin{enumerate}
-    \item \textbf{Spatial Structure Preservation}: CNNs maintain the 2D spatial relationships inherent in cell images, enabling recognition of morphological patterns such as cell shape, nucleus structure, and cytoplasm characteristics.
-    
-    \item \textbf{Hierarchical Feature Learning}: The progressive channel expansion (32→64→128) allows the network to learn increasingly abstract representations:
-    \begin{itemize}
-        \item Layer 1 (32 channels): Basic edges, color gradients, and simple textures
-        \item Layer 2 (64 channels): Cell boundaries, internal structures
-        \item Layer 3 (128 channels): Complete cell morphologies and distinguishing features
-    \end{itemize}
-    
-    \item \textbf{Parameter Efficiency}: With only 422K parameters, the model achieves competitive performance while remaining computationally tractable for resource-constrained environments.
-    
-    \item \textbf{Effective Regularization}: The small training-test accuracy gap (1.78\%) indicates successful generalization without significant overfitting, achieved through appropriate architecture design.
-\end{enumerate}
-
-\textbf{Class-Specific Challenges:}
-
-The confusion matrix reveals specific performance patterns:
-\begin{itemize}
-    \item \textbf{Excellent Classes}: Class 7 (98.3\%), Class 6 (95.8\%), and Class 1 (93.1\%) show strong discriminability
-    \item \textbf{Challenging Class}: Class 5 (54.9\% accuracy) exhibits high confusion with Class 3 (106 misclassifications), suggesting morphological similarities requiring attention
-    \item \textbf{Class 3 Attractor}: Multiple classes misclassified as Class 3 (Erythroblast), indicating shared visual features across cell types
-\end{itemize}
-
-\subsection{Clinical Relevance}
-
-For practical deployment in clinical settings, several considerations emerge from our results:
-
-\begin{itemize}
-    \item \textbf{Accuracy Requirements}: The achieved 86.52\% accuracy with 87.35\% precision demonstrates potential for clinical assistance, though human oversight remains essential for critical diagnoses
-    \item \textbf{High Specificity}: 98.03\% specificity minimizes false positives, reducing unnecessary follow-up procedures
-    \item \textbf{Balanced Sensitivity}: 82.88\% sensitivity ensures most positive cases are detected, though improvement needed for Class 5 (54.9\%)
-    \item \textbf{Computational Efficiency}: 422K parameters enable deployment on portable microscopy devices and edge computing platforms
-    \item \textbf{Real-time Processing}: Fast inference supports high-throughput screening in clinical laboratories
-\end{itemize}
-
-\textbf{Implementation Readiness:}
-\begin{itemize}
-    \item Model size (422K parameters) suitable for embedded systems
-    \item Four comprehensive visualizations support clinical decision-making and model interpretability
-    \item Per-class metrics (precision/recall/specificity) enable targeted quality assessment
-    \item Confusion matrix analysis identifies specific cell types requiring expert review
-\end{itemize}
-
-\subsection{Limitations}
-
-Our study has several limitations that provide opportunities for future work:
-
-\begin{enumerate}
-    \item \textbf{Dataset Size}: While BloodMNIST provides standardized evaluation (17,092 images), larger datasets may improve generalization and rare class performance
-    
-    \item \textbf{Resolution Constraints}: 28×28 pixel images lose fine-grained morphological details present in high-resolution microscopy, potentially limiting discrimination between visually similar cell types
-    
-    \item \textbf{Class Imbalance}: Uneven class distribution (ranging from 243 to 666 samples per class in test set) may contribute to performance variations, particularly for Class 5 (Monocyte)
-    
-    \item \textbf{Single Architecture}: This study focuses on CNN implementation; comparison with other architectures (ResNet, Vision Transformers) could provide additional insights
-    
-    \item \textbf{No Data Augmentation}: Training without augmentation ensures fair baseline evaluation but may limit performance ceiling; rotation, flipping, and color jittering could improve robustness
-    
-    \item \textbf{Hyperparameter Exploration}: Limited tuning of learning rate (0.001), batch size (128), and architecture choices (channel sizes, layer depth) may leave performance optimization potential
-    
-    \item \textbf{Cross-Dataset Validation}: Evaluation limited to BloodMNIST; testing on independent blood cell datasets would better assess real-world generalization
-\end{enumerate}
-
-\subsection{Future Directions}
-
-Based on our findings, several promising research directions emerge:
-
-\begin{itemize}
-    \item \textbf{Advanced Architectures}: Implement ResNet, DenseNet, or Vision Transformers to evaluate performance gains from deeper networks and attention mechanisms
-    
-    \item \textbf{Address Class 5 Challenge}: Focus on improving Monocyte classification through class-specific data augmentation, focal loss for class imbalance, and targeted feature engineering for Monocyte-Erythroblast discrimination
-    
-    \item \textbf{Attention Mechanisms}: Integrate Grad-CAM or attention visualization to understand which cell regions drive predictions, enhancing clinical interpretability
-    
-    \item \textbf{Multi-Task Learning}: Simultaneous cell classification and counting for comprehensive blood analysis
-    
-    \item \textbf{Transfer Learning}: Leverage pre-trained models from larger medical imaging datasets to improve feature representations
-    
-    \item \textbf{Ensemble Methods}: Combine multiple CNN architectures to improve robustness and reduce misclassifications
-    
-    \item \textbf{Uncertainty Quantification}: Bayesian approaches for confidence estimation, critical for clinical decision support
-    
-    \item \textbf{Cross-Dataset Validation}: Evaluate on independent blood cell datasets to assess real-world generalization beyond BloodMNIST
-    
-    \item \textbf{Real-Time Optimization}: Model compression through quantization, pruning, or knowledge distillation for clinical deployment
-\end{itemize}
-
-\section{Conclusion}
-
-This work presents a comprehensive study of CNN architecture for blood cell classification using the BloodMNIST dataset. Our experimental evaluation demonstrates strong performance with the implemented three-layer convolutional network, achieving 86.52\% test accuracy and 0.866 F1-score with only 422,344 parameters.
-
-Key findings include:
-\begin{itemize}
-    \item \textbf{Effective Architecture}: CNN with progressive channel expansion (32→64→128) successfully learns hierarchical features for blood cell discrimination
-    
-    \item \textbf{Strong Generalization}: Minimal overfitting (1.78\% gap) between training (88.3\%) and test (86.5\%) accuracy demonstrates robust learning without excessive regularization needs
-    
-    \item \textbf{Balanced Performance}: Macro-averaged metrics (87.35\% precision, 82.88\% recall, 98.03\% specificity) indicate reliable classification across most cell types
-    
-    \item \textbf{Clinical Readiness}: Compact model size (422K parameters) and high specificity (98.03\%) support deployment in clinical settings for assisted diagnosis
-    
-    \item \textbf{Identified Challenges}: Confusion matrix analysis reveals Class 5 (Monocyte) as requiring focused improvement, with frequent misclassification as Class 3 (Erythroblast)
-    
-    \item \textbf{Comprehensive Evaluation}: Multi-dimensional assessment across quality (accuracy, F1), efficacy (sensitivity, specificity), and efficiency (parameters, loss) provides holistic performance understanding
-\end{itemize}
-
-The complete implementation generates four visualization types (loss curves, accuracy curves, confusion matrix heatmap, precision-recall bars) enabling thorough model diagnosis and interpretation. All code, configurations, and training procedures are documented for reproducibility, facilitating further research in automated blood cell analysis.
-
-This study establishes a strong baseline for blood cell classification with CNNs and identifies specific directions for future improvement, particularly addressing class imbalance and challenging cell type discrimination through advanced architectures and targeted optimization strategies.
-
-\section*{Reproducibility Statement}
-
-All code, model configurations, and experimental settings are available in the project repository. The implementation uses standard \texttt{torch} operations and the publicly available BloodMNIST dataset from the MedMNIST collection. Specific hyperparameters are detailed in Table~\ref{tab:hyperparameters}, and the training procedure follows standard practices with fixed random seeds for reproducibility.
-
-\section*{Acknowledgments}
-
-We acknowledge the creators of the MedMNIST dataset collection for providing standardized benchmarks for medical image classification research.
+The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the momentum-based
+SGD optimizer is a bit less stable in comparison to Adam because, for exmaple,
+it tends to classify more samples as class 3. This could be due to the optimizer's
+inability to adapt learning rates for individual parameters, leading to suboptimal
+updates. In contrast, the Adam optimizer (Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced
+classification across classes, with fewer misclassifications. This further
+emphasizes Adam's effectiveness across several metrics.
 
 \begin{thebibliography}{10}
 
-\bibitem{esteva2019guide}
-Esteva, A., Robicquet, A., Ramsundar, B., Kuleshov, V., DePristo, M., Chou, K., Cui, C., Corrado, G., Thrun, S., Dean, J.:
-A guide to deep learning in healthcare.
-Nature medicine 25(1), 24--29 (2019)
+    \bibitem{esteva2019guide}
+    Esteva, A., Robicquet, A., Ramsundar, B., Kuleshov, V., DePristo, M., Chou, K., Cui, C., Corrado, G., Thrun, S., Dean, J.:
+    A guide to deep learning in healthcare.
+    Nature medicine 25(1), 24--29 (2019)
 
-\bibitem{lecun2015deep}
-LeCun, Y., Bengio, Y., Hinton, G.:
-Deep learning.
-Nature 521(7553), 436--444 (2015)
+    \bibitem{lecun2015deep}
+    LeCun, Y., Bengio, Y., Hinton, G.:
+    Deep learning.
+    Nature 521(7553), 436--444 (2015)
 
-\bibitem{krizhevsky2012imagenet}
-Krizhevsky, A., Sutskever, I., Hinton, G.E.:
-Imagenet classification with deep convolutional neural networks.
-Advances in neural information processing systems 25 (2012)
+    \bibitem{krizhevsky2012imagenet}
+    Krizhevsky, A., Sutskever, I., Hinton, G.E.:
+    Imagenet classification with deep convolutional neural networks.
+    Advances in neural information processing systems 25 (2012)
 
-\bibitem{habibzadeh2011comparative}
-Habibzadeh, M., Krzy{\.z}ak, A., Fevens, T.:
-Comparative study of shape, intensity and texture features and support vector machine for white blood cell classification.
-Journal of Theoretical and Applied Computer Science 5(1), 20--35 (2011)
+    \bibitem{habibzadeh2011comparative}
+    Habibzadeh, M., Krzy{\.z}ak, A., Fevens, T.:
+    Comparative study of shape, intensity and texture features and support vector machine for white blood cell classification.
+    Journal of Theoretical and Applied Computer Science 5(1), 20--35 (2011)
 
-\bibitem{acevedo2020recognition}
-Acevedo, A., Merino, A., Alférez, S., Molina, Á., Boldú, L., Rodellar, J.:
-A dataset of microscopic peripheral blood cell images for development of automatic recognition systems.
-Data in brief 30, 105474 (2020)
+    \bibitem{acevedo2020recognition}
+    Acevedo, A., Merino, A., Alférez, S., Molina, Á., Boldú, L., Rodellar, J.:
+    A dataset of microscopic peripheral blood cell images for development of automatic recognition systems.
+    Data in brief 30, 105474 (2020)
 
-\bibitem{yang2021medmnist}
-Yang, J., Shi, R., Ni, B.:
-MedMNIST Classification Decathlon: A Lightweight AutoML Benchmark for Medical Image Analysis.
-IEEE 18th International Symposium on Biomedical Imaging (ISBI), 191--195 (2021)
+    \bibitem{yang2021medmnist}
+    Yang, J., Shi, R., Ni, B.:
+    MedMNIST Classification Decathlon: A Lightweight AutoML Benchmark for Medical Image Analysis.
+    IEEE 18th International Symposium on Biomedical Imaging (ISBI), 191--195 (2021)
 
-\bibitem{kingma2014adam}
-Kingma, D.P., Ba, J.:
-Adam: A method for stochastic optimization.
-arXiv preprint arXiv:1412.6980 (2014)
+    \bibitem{kingma2014adam}
+    Kingma, D.P., Ba, J.:
+    Adam: A method for stochastic optimization.
+    arXiv preprint arXiv:1412.6980 (2014)
 
 \end{thebibliography}
 
