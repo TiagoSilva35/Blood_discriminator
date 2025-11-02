@@ -45,10 +45,17 @@ def fit(
             
             # batch normalization
             optimizer.zero_grad()
-
             # forward pass
             outputs = nn(X_batch)
-            loss = criterion(outputs, y_batch)
+
+            if isinstance(criterion, torch.nn.MSELoss):
+                # Convert targets to one-hot
+                y_batch_onehot = torch.zeros(y_batch.size(0), outputs.size(1)).to(device)
+                y_batch_onehot.scatter_(1, y_batch.view(-1, 1), 1)
+                loss = criterion(outputs, y_batch_onehot)
+            else:
+                loss = criterion(outputs, y_batch)
+
             accu_loss += loss.item()
             num_batches += 1
             
@@ -85,7 +92,14 @@ def evaluate(device, X_test, y_test, nn, criterion, to_device=True):
     with torch.no_grad():
         outputs = nn(X_test)
         _, predicted = torch.max(outputs.data, 1)
-        loss = criterion(outputs, y_test)
+        if isinstance(criterion, torch.nn.MSELoss):
+            # Convert targets to one-hot
+            y_test_onehot = torch.zeros(y_test.size(0), outputs.size(1)).to(device)
+            y_test_onehot.scatter_(1, y_test.view(-1, 1), 1)
+            loss = criterion(outputs, y_test_onehot)
+        else:
+            loss = criterion(outputs, y_test)
+
         accuracy = 100 * (predicted == y_test).sum().item() / y_test.size(0)
 
     if to_device:

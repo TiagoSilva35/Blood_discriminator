@@ -11,6 +11,8 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{subcaption}
+\usepackage{mdframed}
+
 
 \begin{document}
 
@@ -183,12 +185,21 @@ Here are the main reasons behind our choices:
 
 \newpage
 \section{Results}
-In this section we first present and analyze the results obtained with each type of 
-deep learning architecture: MLNN and CNN. Then we proceed to a comparative analysis between both.
+In this section we first present and analyze the results obtained with each
+type of deep learning architecture: MLNN and CNN. Then we proceed to a
+comparative analysis between both.
 \subsection{MLNN}
 Two MLNN configurations were tested, differing in optimizer and learning rate
 (as detailed in Table~\ref{tab:hyperparametersMLNN}). Let's analyze the results
 and make some observations.
+
+\begin{mdframed}
+    \textbf{Important Note:} We conducted tests using another loss function, Mean Squared Error (MSELoss),
+    to evaluate its impact on training dynamics and performance. As expected, the results were inferior (average loss
+    of accuracy around 10-20\%) to those obtained with CrossEntropyLoss, confirming the latter's suitability for multi-class classification tasks.
+    We therefore decided to focus exclusively on CrossEntropyLoss in our experiments given the length constraints and to maintain clarity in our analysis.
+\end{mdframed}
+
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -297,25 +308,31 @@ underrepresented classes.
     \label{fig:mlnn_cm_comparison}
 \end{figure}
 
-The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the momentum-based
-SGD optimizer is a bit less stable in comparison to Adam because, for exmaple,
-it tends to classify more samples as class 3. This could be due to the optimizer's
-inability to adapt learning rates for individual parameters, leading to suboptimal
-updates. In contrast, the Adam optimizer (Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced
-classification across classes, with fewer misclassifications. This further
-emphasizes Adam's effectiveness across several metrics.
-\newline
-\newline
-The F1 score, is around 0.80 for both configurations, with Adam slightly outperforming
-SGD with Momentum. This indicates that while both models are effective, and for simple tasks
-like this one the differences are not very pronounced, Adam provides a marginal advantage in balancing
-precision and recall (the thresholds are better optimized).
-
+The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the
+momentum-based SGD optimizer is a bit less stable in comparison to Adam
+because, for exmaple, it tends to classify more samples as class 3. This could
+be due to the optimizer's inability to adapt learning rates for individual
+parameters, leading to suboptimal updates. In contrast, the Adam optimizer
+(Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced classification
+across classes, with fewer misclassifications. This further emphasizes Adam's
+effectiveness across several metrics. \newline \newline The F1 score, is around
+0.80 for both configurations, with Adam slightly outperforming SGD with
+Momentum. This indicates that while both models are effective, and for simple
+tasks like this one the differences are not very pronounced, Adam provides a
+marginal advantage in balancing precision and recall (the thresholds are better
+optimized).
 
 \subsection{CNN}
 
 \subsection{Comparative Analysis}
 
+\section{Conclusion}
+This study compared the performance of Multi-Layer Neural Networks (MLNN) and
+Convolutional Neural Networks (CNN) for blood cell classification using the BloodMNIST
+dataset. As expected, the CNN architecture outperformed the MLNN across all evaluation
+metrics, including accuracy, precision, recall, and F1-score. We were able not only to validate the
+forementioned theoretical thesis but also do so in a practical, real world scenario with
+all the complexities that entails (e.g.\ class imbalance)
 
 \newpage
 \begin{thebibliography}{10}
