@@ -1,1 +1,1 @@
-Processed data shapes: Train: torch.Size([11959, 2352]), Test: torch.Size([3421, 2352])
+Using device: cpu

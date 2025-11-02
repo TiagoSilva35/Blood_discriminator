@@ -13,7 +13,6 @@
 \usepackage{subcaption}
 \usepackage{mdframed}
 
-
 \begin{document}
 
 \title{Blood Cell Classification Using Deep Learning: MLNN and CNN Architectures}
@@ -58,13 +57,78 @@ As expected in medical datasets, class imbalance exists, with some cell types be
 This is addressed in the evaluation phase using metrics sensitive to class distribution
 to ensure a more robust assessment of model performance.
 
-\subsection{Model Architectures}
+\subsection{Multi-Layer Neural Network Model}
+\subsubsection{Architecture} The MLNN architecture uses only fully-connected layers:
 
-\subsubsection{Convolutional Neural Network (CNN)}
-Our CNN architecture consists of three convolutional blocks followed by
-fully-connected layers. The design follows the principle of progressively
-increasing feature channels while reducing spatial dimensions:
+\vspace{-0.3cm}
+\begin{algorithm}
+    \caption{MLNN Architecture}
+    \begin{algorithmic}[1]
+        \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
+        \STATE \textbf{Flatten:} $x \in \mathbb{R}^{B \times 2352}$ (where $2352 = 3 \times 28 \times 28$)
+        \STATE \textbf{FC\textsubscript{1}:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
+        \STATE \textbf{FC\textsubscript{2}-FC\textsubscript{n}:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
+        \STATE \textbf{Output Layer:} Linear($h_n$ $\rightarrow$ 8)
+        \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
+    \end{algorithmic}
+\end{algorithm}
+\vspace{-0.3cm}
 
+\noindent
+The size of the hidden layers in the network is calculated using the average of the input and output dimensions:
+\begin{equation}
+    h = \frac{n_{input} + n_{classes}}{2} = \frac{2352 + 8}{2} = 1180
+\end{equation}
+This heuristic provides reasonable capacity without excessive parameters.
+For a single hidden layer configuration, it results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces the network to learn compressed representations.
+While this approach can work for simple classification tasks, it fundamentally treats each pixel as an independent feature, ignoring the 2D spatial relationships that characterize cell morphology. \\
+\noindent
+The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred for image classification.
+The lack of translation invariance, the enormous first-layer parameter count (2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight the architectural disadvantages of this approach when compared to convolutional ones.
+As such, this work validates theoretical understanding through empirical evidence.
+
+\subsubsection{Training Configuration}
+Table~\ref{tab:hyperparametersMLNN} presents the complete hyperparameter configuration used in our experiments, chosen to both experiment with different training dynamics and provide a solid baseline for comparison with the CNN architecture.
+\vspace{-0.9cm}
+\begin{table}[htbp]
+    \centering
+    \caption{Experimental Hyperparameters}
+    \label{tab:hyperparametersMLNN}
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Parameter}  & \textbf{MLNN-Test1} & \textbf{MLNN-Test2}   & \textbf{MLNN-Test3} \\
+        \midrule
+        Learning Rate       & 0.001               & 0.01                  & 0.001               \\
+        Optimizer           & Adam                & SGD w/ Momentum (0.9) & Adam                \\
+        Loss Function       & CrossEntropyLoss    & CrossEntropyLoss      & MeanSquaredError    \\
+        Epochs              & 15                  & 15                    & 15                  \\
+        Hidden Layers       & 1                   & 1                     & 1                   \\
+        Hidden Size         & 1180                & 1180                  & 1180                \\
+        Activation Function & ReLU                & ReLU                  & ReLU                \\
+        Initialization      & He                  & He                    & He                  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent
+Here are the main reasons behind our choices:
+\begin{itemize}
+    \item CrossEntropyLoss was chosen as the standard loss function for multi-class classification, combining LogSoftmax and NLLLoss for numerical stability. 
+          This is particularly important given the class imbalanced nature of the dataset, CrossEntropyLoss poses a powerful approach to handle such scenarios by adjusting class influence through customized weighting if necessary.
+    \item The state of the art Adam optimizer handles the varying gradient magnitudes across different network depths was selected due to its innovative adaptive learning rate mechanism, combining the benefits of RMSProp and momentum-based SGD. 
+          To compare with the forementioned momentum-based SGD optimizer, we also implemented the same MLNN using this optimizer (with momentum set to 0.9) and a higher learning rate (0.01 because in contrast to Adam, SGD lacks adaptive learning rates, therefore, a higher initial learning rate is necessary to achieve comparable performance).
+    \item The 0.001 learning rate represents the standard default for Adam in computer vision tasks. 
+          Preliminary experiments validated this choice for the Adam optimizer test: higher rates (0.01) caused training instability, while lower rates (0.0001) converged too slowly. 
+          The selected rate achieves a smooth loss decrease (1.58 → 0.313) without oscillations, with test performance plateauing around epoch 12, indicating appropriate convergence behavior.
+    \item The 15-epoch training duration was determined empirically.
+    \item He initialization was used throughout, as it is specifically designed for ReLU activations and prevents vanishing/exploding gradients by maintaining variance across layers.
+\end{itemize}
+
+\subsection{Convolutional Neural Network Model}
+
+Our CNN architecture consists of three convolutional blocks followed by fully-connected layers. 
+The design follows the principle of progressively increasing feature channels while reducing spatial dimensions:
+\vspace{-0.3cm}
 \begin{algorithm}
     \caption{CNN Architecture}
     \begin{algorithmic}[1]
@@ -82,6 +146,7 @@ increasing feature channels while reducing spatial dimensions:
         \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
     \end{algorithmic}
 \end{algorithm}
+\vspace*{-0.3cm}
 
 \noindent
 The architecture has 422,344 total parameters, and its rationale is as follows:
@@ -101,105 +166,59 @@ The channel progression and kernel sizes were selected based on established (sta
 Additionally, the fully-connected layers were sized to gradually reduce the feature representation to the final class logits (preventing abrupt bottlenecks).
 Though the design could certainly be further optimized through hyperparameter tuning, this architecture serves as a solid baseline (experimentally validated in the results section).
 
-\subsubsection{Multi-Layer Neural Network (MLNN)}
-The MLNN architecture uses only fully-connected layers:
+\subsubsection{Training Configuration}
+Table~\ref{tab:hyperparametersCNN} presents the complete hyperparameter configuration used in our experiments with the CNN architecture:
 
-\begin{algorithm}
-    \caption{MLNN Architecture}
-    \begin{algorithmic}[1]
-        \STATE \textbf{Input:} $x \in \mathbb{R}^{B \times 3 \times 28 \times 28}$
-        \STATE \textbf{Flatten:} $x \in \mathbb{R}^{B \times 2352}$ (where $2352 = 3 \times 28 \times 28$)
-        \STATE \textbf{FC\textsubscript{1}:} Linear(2352 $\rightarrow$ $h_1$) + ReLU
-        \STATE \textbf{FC\textsubscript{2}-FC\textsubscript{n}:} Linear($h_{i-1}$ $\rightarrow$ $h_i$) + ReLU (for $n$ hidden layers)
-        \STATE \textbf{Output Layer:} Linear($h_n$ $\rightarrow$ 8)
-        \STATE \textbf{Output:} Logits $\in \mathbb{R}^{B \times 8}$
-    \end{algorithmic}
-\end{algorithm}
-
-\noindent
-The size of the hidden layers in the network is calculated using the average of the input and output dimensions:
-\begin{equation}
-    h = \frac{n_{input} + n_{classes}}{2} = \frac{2352 + 8}{2} = 1180
-\end{equation}
-This heuristic provides reasonable capacity without excessive parameters.
-For a single hidden layer configuration, it results in 1,180 hidden units, creating a bottleneck architecture (2352 → 1180 → 8) that forces the network to learn compressed representations.
-While this approach can work for simple classification tasks, it fundamentally treats each pixel as an independent feature, ignoring the 2D spatial relationships that characterize cell morphology. \\
-\noindent
-The MLNN architecture serves primarily as a pedagogical baseline to demonstrate why CNNs are preferred for image classification.
-The lack of translation invariance, the enormous first-layer parameter count (2.77M parameters just in the first layer), and the immediate loss of spatial structure highlight the architectural disadvantages of this approach when compared to convolutional ones.
-As such, this work validates theoretical understanding through empirical evidence.
-
-\subsection{Training Configuration: MLNN}
-
+\vspace{-0.9cm}
 \begin{table}[htbp]
-    %\vspace{-0.5cm}
     \centering
     \caption{Experimental Hyperparameters}
-    \label{tab:hyperparametersMLNN}
-    \begin{tabular}{lll}
+    \label{tab:hyperparametersCNN}
+    \begin{tabular}{llll}
         \toprule
-        \textbf{Parameter}  & \textbf{MLNN-Test1} & \textbf{MLNN-Test2}   \\
+        \textbf{Parameter}  & \textbf{CNN-Test1} & \textbf{CNN-Test2}     & \textbf{CNN-Test3} \\
         \midrule
-        Learning Rate       & 0.001               & 0.01                  \\
-        Optimizer           & Adam                & SGD w/ Momentum (0.9) \\
-        Loss Function       & CrossEntropyLoss    & CrossEntropyLoss      \\
-        Epochs              & 15                  & 15                    \\
-        Hidden Layers       & 1                   & 1                     \\
-        Hidden Size         & 1180                & 1180                  \\
-        Activation Function & ReLU                & ReLU                  \\
+        Learning Rate       & 0.001               & 0.01                  & 0.001              \\
+        Optimizer           & Adam                & SGD w/ Momentum (0.9) & Adam               \\
+        Loss Function       & CrossEntropyLoss    & CrossEntropyLoss      & MeanSquaredError   \\
+        Epochs              & 15                  & 15                    & 15                 \\
+        Activation Function & ReLU                & ReLU                  & ReLU               \\
+        Initialization      & He                  & He                    & He                 \\
         \bottomrule
     \end{tabular}
 \end{table}
+\vspace*{-0.3cm}
 
-Table~\ref{tab:hyperparametersMLNN} presents the complete hyperparameter
-configuration used in our experiments, chosen to both experiment with different
-training dynamics and provide a solid baseline for comparison with the CNN
-architecture.
-
-Here are the main reasons behind our choices:
-\begin{itemize}
-    \item CrossEntropyLoss was chosen as the standard loss function for multi-class
-          classification, combining LogSoftmax and NLLLoss for numerical stability. This
-          is particularly important given the class imbalanced nature of the dataset,
-          CrossEntropyLoss poses a powerful approach to handle such scenarios by
-          adjusting class influence through customized weighting if necessary.
-    \item The state of the art Adam optimizer handles the varying gradient magnitudes
-          across different network depths was selected due to its innovative adaptive
-          learning rate mechanism, combining the benefits of RMSProp and momentum-based
-          SGD. To compare with the forementioned momentum-based SGD optimizer, we also
-          implemented the same MLNN using this optimizer (with momentum set to 0.9) and a
-          higher learning rate (0.01 because in contrast to Adam, SGD lacks adaptive
-          learning rates, therefore, a higher initial learning rate is necessary to
-          achieve comparable performance).
-    \item The 0.001 learning rate represents the standard default for Adam in computer
-          vision tasks. Preliminary experiments (not detailed here) validated this
-          choice: higher rates (0.01) caused training instability, while lower rates
-          (0.0001) converged too slowly. The selected rate achieves a smooth loss
-          decrease (1.58 → 0.313) without oscillations, with test performance plateauing
-          around epoch 12, indicating appropriate convergence behavior.
-    \item The 15-epoch training duration was determined empirically.
-    \item He initialization was used throughout, as it is specifically designed for ReLU
-          activations and prevents vanishing/exploding gradients by maintaining variance
-          across layers.
-\end{itemize}
+\noindent
+Many of the optimal hyperparameters found in the preliminary CNN experiments align with those identified for MLNNs.
+In order to make our comparison of the two the most relevant possible.
 
 \newpage
 \section{Results}
-In this section we first present and analyze the results obtained with each
-type of deep learning architecture: MLNN and CNN. Then we proceed to a
-comparative analysis between both.
+% In this section we first present and analyze the results obtained with each type of deep learning architecture: MLNN and CNN. 
+% Then we proceed to a comparative analysis between both.
+
 \subsection{MLNN}
-Two MLNN configurations were tested, differing in optimizer and learning rate
-(as detailed in Table~\ref{tab:hyperparametersMLNN}). Let's analyze the results
-and make some observations.
+For this section, the focus was put on comparing the performance of the first two MLNN configurations (differing in optimizer and learning rate as detailed in Table~\ref{tab:hyperparametersMLNN}). 
+However, we also conducted the tests for the third configuration, to evaluate the impact of a different loss function (Mean Squared Error, or MSELoss) on training dynamics and performance. 
+As expected, the results were inferior (average loss of accuracy around 10-20\%) to those obtained with CrossEntropyLoss, confirming the latter's superiority over the former in this context, particularly due to solving the vanishing gradient problem.
+Given the predictability of this outcome, we decided to focus exclusively on CrossEntropyLoss in our experiments given the length constraints and to maintain clarity in our analysis.
+Let's analyze the results and make some observations.
 
-\begin{mdframed}
-    \textbf{Important Note:} We conducted tests using another loss function, Mean Squared Error (MSELoss),
-    to evaluate its impact on training dynamics and performance. As expected, the results were inferior (average loss
-    of accuracy around 10-20\%) to those obtained with CrossEntropyLoss, confirming the latter's suitability for multi-class classification tasks.
-    We therefore decided to focus exclusively on CrossEntropyLoss in our experiments given the length constraints and to maintain clarity in our analysis.
-\end{mdframed}
+% \begin{mdframed}
+%     \textbf{Important Note:} We conducted tests using another loss function, Mean Squared Error (MSELoss),
+%     to evaluate its impact on training dynamics and performance. As expected, the results were inferior (average loss
+%     of accuracy around 10-20\%) to those obtained with CrossEntropyLoss, confirming the latter's suitability for multi-class classification tasks.
+%     We therefore decided to focus exclusively on CrossEntropyLoss in our experiments given the length constraints and to maintain clarity in our analysis.
+% \end{mdframed}
 
+\noindent
+Looking at the loss curves in Figure~\ref{fig:mlnn_loss_comparison}, we can see that both configurations show a decreasing trend, indicating that the models are learning. 
+However, the Adam optimizer (Figure~\ref{fig:mlnn_test1_loss}) demonstrates a more stable and consistent decrease in loss compared to the SGD with Momentum (Figure~\ref{fig:mlnn_test2_loss}), which exhibits a more erratic pattern, oscillating significantly during training. 
+This suggests that Adam is better suited because not only does it adapt the learning rate for each parameter, but it also combines the benefits of both Momentum and RMSProp, leading to more efficient convergence. 
+This is a relatively simple task, so both optimizers manage to reduce the loss, but with an increase in complexity we might have seen more pronounced differences.
+
+\vspace{-0.5cm}
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -215,23 +234,17 @@ and make some observations.
         \caption{(SGD+Momentum, lr=0.01)}
         \label{fig:mlnn_test2_loss}
     \end{subfigure}
+    \vspace{-0.2cm}
     \caption{Loss curves comparison between MLNN configurations}
     \label{fig:mlnn_loss_comparison}
 \end{figure}
+\vspace{-0.5cm}
 
-Looking at the loss curves in Figure~\ref{fig:mlnn_loss_comparison}, we can see
-that both configurations show a decreasing trend, indicating that the models
-are learning. However, the Adam optimizer (Figure~\ref{fig:mlnn_test1_loss})
-demonstrates a more stable and consistent decrease in loss compared to the SGD
-with Momentum (Figure~\ref{fig:mlnn_test2_loss}), which exhibits a more erratic
-pattern, oscillating significantly during training. This suggests that Adam is
-better suited because not only does it adapt the learning rate for each
-parameter, but it also combines the benefits of both momentum and RMSProp,
-leading to more efficient convergence. This is a relatively simple task, hence
-both optimizers manage to reduce the loss. If this were a more complex task,
-the differences would be more pronounced.
+\noindent
+Similarly, the accuracy curves in Figure~\ref{fig:mlnn_acc_comparison} show that the Adam optimizer achieves higher accuracy more quickly than SGD with Momentum. 
+The Adam configuration reaches approximately 85\% accuracy by epoch 10, while the SGD configuration lags behind, only reaching around 75\% accuracy by the same epoch. 
+This further supports the conclusion that Adam's adaptive learning rates and momentum mechanisms provide a significant advantage in training efficiency.
 
-\newpage
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -247,18 +260,19 @@ the differences would be more pronounced.
         \caption{(SGD+Momentum, lr=0.01)}
         \label{fig:mlnn_test2_acc}
     \end{subfigure}
+    \vspace{-0.2cm}
     \caption{Accuracy curves comparison between MLNN configurations}
     \label{fig:mlnn_acc_comparison}
 \end{figure}
+\vspace*{-0.6cm}
 
-Similarly, the accuracy curves in Figure~\ref{fig:mlnn_acc_comparison} show
-that the Adam optimizer achieves higher accuracy more quickly than SGD with
-Momentum. The Adam configuration reaches approximately 85\% accuracy by epoch
-10, while the SGD configuration lags behind, only reaching around 75\% accuracy
-by the same epoch. This further supports the conclusion that Adam's adaptive
-learning rates and momentum mechanisms provide a significant advantage in
-training efficiency.
+\noindent
+The bar charts in Figure~\ref{fig:mlnn_pr_comparison} illustrate the precision and recall for each class in both MLNN configurations. 
+We observe that the Adam optimizer (Figure~\ref{fig:mlnn_test1_pr}) generally outperforms the SGD with Momentum (Figure~\ref{fig:mlnn_test2_pr}) across most classes. 
+Notably, classes with fewer samples (such as class 0) exhibit lower precision and recall in both configurations, highlighting the challenges posed by class imbalance. 
+Despite in most classes the recall and precision values are relatively high, indicating that the models thresholds are effective at identifying the majority of instances correctly, there is still room for improvement, especially for underrepresented classes.
 
+\vspace*{-0.4cm}
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -274,21 +288,21 @@ training efficiency.
         \caption{MLNN-Test2}
         \label{fig:mlnn_test2_pr}
     \end{subfigure}
+    \vspace{-0.2cm}
     \caption{Precision and Recall comparison across classes}
     \label{fig:mlnn_pr_comparison}
 \end{figure}
+\vspace*{-0.6cm}
 
-The bar charts in Figure~\ref{fig:mlnn_pr_comparison} illustrate the precision
-and recall for each class in both MLNN configurations. We observe that the Adam
-optimizer (Figure~\ref{fig:mlnn_test1_pr}) generally outperforms the SGD with
-Momentum (Figure~\ref{fig:mlnn_test2_pr}) across most classes. Notably, classes
-with fewer samples (such as class 0) exhibit lower precision and recall in both
-configurations, highlighting the challenges posed by class imbalance. Despite
-in most classes the recall and precision values are relatively high, indicating
-that the models thresholds are effective at identifying the majority of
-instances correctly, there is still room for improvement, especially for
-underrepresented classes.
+\noindent
+The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the momentum-based SGD optimizer is a bit less stable in comparison to Adam because, for example, it tends to classify more samples as class 3. 
+This could be due to the optimizer's inability to adapt learning rates for individual parameters, leading to suboptimal updates. 
+In contrast, the Adam optimizer (Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced classification across classes, with fewer misclassifications. 
+This further emphasizes Adam's effectiveness across several metrics.
+The F1 score is around 0.80 for both configurations, with Adam slightly outperforming SGD with Momentum. 
+This indicates that while both models are effective, and for simple tasks like this one the differences are not very pronounced, Adam provides a marginal advantage in balancing precision and recall (the thresholds are better optimized).
 
+\vspace{-0.5cm}
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.48\textwidth}
@@ -304,25 +318,118 @@ underrepresented classes.
         \caption{MLNN-Test2}
         \label{fig:mlnn_test2_cm}
     \end{subfigure}
+    \vspace{-0.2cm}
     \caption{Confusion matrices for both MLNN configurations}
     \label{fig:mlnn_cm_comparison}
 \end{figure}
-
-The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the
-momentum-based SGD optimizer is a bit less stable in comparison to Adam
-because, for exmaple, it tends to classify more samples as class 3. This could
-be due to the optimizer's inability to adapt learning rates for individual
-parameters, leading to suboptimal updates. In contrast, the Adam optimizer
-(Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced classification
-across classes, with fewer misclassifications. This further emphasizes Adam's
-effectiveness across several metrics. \newline \newline The F1 score, is around
-0.80 for both configurations, with Adam slightly outperforming SGD with
-Momentum. This indicates that while both models are effective, and for simple
-tasks like this one the differences are not very pronounced, Adam provides a
-marginal advantage in balancing precision and recall (the thresholds are better
-optimized).
+%\vspace{-1cm}
 
 \subsection{CNN}
+Many of the conclusions from the last section are applicable to the CNN test results as well, with some differences. \\
+% Loss function
+\noindent
+The Adam optimizer test achieves the lowest loss values across all epochs again, but in a more pronounced way than in the MLNN (seen in Figure~\ref{fig:cnn_test1_loss}).
+Adam works especially well for CNNs because these networks are deep, have many different parameters, and their gradients can change a lot.
+For MLNNs, which are simpler and have more consistent gradients, Adam's benefits aren't as noticeable.
+Another noticeable change is how the second test's erratic nature in the first batch is not replicated here, which may be due to the fact that this architecture is much more robust than the previous, performing more complex operations with more layers.
+
+\vspace{-0.5cm}
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test1_loss.png}
+        \caption{(Adam, lr=0.001)}
+        \label{fig:cnn_test1_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test2_loss.png}
+        \caption{(SGD+Momentum, lr=0.01)}
+        \label{fig:cnn_test2_loss}
+    \end{subfigure}
+    \vspace{-0.2cm}
+    \caption{Loss curves comparison between CNN configurations}
+    \label{fig:cnn_loss_comparison}
+\end{figure}
+\vspace{-0.5cm}
+
+\noindent
+The verified trend of a steeper performance difference between the two continues in Figure~\ref{fig:cnn_acc_comparison} as the Adam test reaches a Test accuracy of about 90\% to Momentum's 82\%.
+
+\vspace{-0.4cm}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test1_accuracy.png}
+        \caption{(Adam, lr=0.001)}
+        \label{fig:cnn_test1_acc}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test2_accuracy.png}
+        \caption{(SGD+Momentum, lr=0.01)}
+        \label{fig:cnn_test2_acc}
+    \end{subfigure}
+    \vspace{-0.2cm}
+    \caption{Accuracy curves comparison between CNN configurations}
+    \label{fig:cnn_acc_comparison}
+\end{figure}
+\vspace{-0.5cm}
+
+\noindent
+This phenomenon can also be seen by how visually clear it is in Figure~\ref{fig:cnn_pr_comparison} that the Adam test outperformed its counterpart in terms of the Precision and Recall metrics, evidenced by how high every bar is in Figure~\ref{fig:cnn_test1_pr}.
+
+\vspace*{-0.4cm}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test1_sens_recall.png}
+        \caption{MLNN-Test1}
+        \label{fig:cnn_test1_pr}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test2_sens_recall.png}
+        \caption{MLNN-Test2}
+        \label{fig:cnn_test2_pr}
+    \end{subfigure}
+    \vspace{-0.2cm}
+    \caption{Precision and Recall comparison across classes}
+    \label{fig:cnn_pr_comparison}
+\end{figure}
+\vspace*{-0.5cm}
+
+\noindent
+Finally, Figure~\ref{fig:cnn_cm_comparison} shows how this translates into the model's classification performance.
+
+%\newpage
+\vspace{-0.5cm}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test1_CM.png}
+        \caption{MLNN-Test1}
+        \label{fig:cnn_test1_cm}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/cnn_test2_CM.png}
+        \caption{MLNN-Test2}
+        \label{fig:cnn_test2_cm}
+    \end{subfigure}
+    \vspace{-0.2cm}
+    \caption{Confusion matrices for both CNN configurations}
+    \label{fig:cnn_cm_comparison}
+\end{figure}
+%\vspace{-0.5cm}
 
 \subsection{Comparative Analysis}
 
