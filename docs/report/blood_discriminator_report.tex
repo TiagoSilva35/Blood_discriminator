@@ -201,7 +201,7 @@ In order to make our comparison of the two the most relevant possible.
 \subsection{MLNN}
 For this section, the focus was put on comparing the performance of the first two MLNN configurations (differing in optimizer and learning rate as detailed in Table~\ref{tab:hyperparametersMLNN}). 
 However, we also conducted the tests for the third configuration, to evaluate the impact of a different loss function (Mean Squared Error, or MSELoss) on training dynamics and performance. 
-As expected, the results were inferior (average loss of accuracy around 10-20\%) to those obtained with CrossEntropyLoss, confirming the latter's superiority over the former in this context, particularly due to solving the vanishing gradient problem.
+As expected, the results were inferior (average loss of accuracy around 5-10\%) to those obtained with CrossEntropyLoss, confirming the latter's superiority over the former in this context, particularly due to solving the vanishing gradient problem.
 Given the predictability of this outcome, we decided to focus exclusively on CrossEntropyLoss in our experiments given the length constraints and to maintain clarity in our analysis.
 Let's analyze the results and make some observations.
 
@@ -242,7 +242,7 @@ This is a relatively simple task, so both optimizers manage to reduce the loss, 
 
 \noindent
 Similarly, the accuracy curves in Figure~\ref{fig:mlnn_acc_comparison} show that the Adam optimizer achieves higher accuracy more quickly than SGD with Momentum. 
-The Adam configuration reaches approximately 85\% accuracy by epoch 10, while the SGD configuration lags behind, only reaching around 75\% accuracy by the same epoch. 
+The Adam configuration reaches approximately 80\% accuracy by epoch 10, while the SGD configuration lags behind, only reaching around 75\% accuracy by the same epoch. 
 This further supports the conclusion that Adam's adaptive learning rates and momentum mechanisms provide a significant advantage in training efficiency.
 
 \begin{figure}[H]
@@ -299,7 +299,7 @@ The confusion matrix in Figure~\ref{fig:mlnn_test2_cm} shows that the momentum-b
 This could be due to the optimizer's inability to adapt learning rates for individual parameters, leading to suboptimal updates. 
 In contrast, the Adam optimizer (Figure~\ref{fig:mlnn_test1_cm}) demonstrates a more balanced classification across classes, with fewer misclassifications. 
 This further emphasizes Adam's effectiveness across several metrics.
-The F1 score is around 0.80 for both configurations, with Adam slightly outperforming SGD with Momentum. 
+The F1 score is a little under 0.80 for both configurations, with Adam slightly outperforming SGD with Momentum. 
 This indicates that while both models are effective, and for simple tasks like this one the differences are not very pronounced, Adam provides a marginal advantage in balancing precision and recall (the thresholds are better optimized).
 
 \vspace{-0.5cm}
@@ -356,7 +356,7 @@ Another noticeable change is how the second test's erratic nature in the first b
 \vspace{-0.5cm}
 
 \noindent
-The verified trend of a steeper performance difference between the two continues in Figure~\ref{fig:cnn_acc_comparison} as the Adam test reaches a Test accuracy of about 90\% to Momentum's 82\%.
+The verified trend of a steeper performance difference between the two continues in Figure~\ref{fig:cnn_acc_comparison}, as the Adam test reaches a Test accuracy of about 90\% to Momentum's 82\%.
 
 \vspace{-0.4cm}
 \begin{figure}[H]
@@ -383,20 +383,20 @@ The verified trend of a steeper performance difference between the two continues
 \noindent
 This phenomenon can also be seen by how visually clear it is in Figure~\ref{fig:cnn_pr_comparison} that the Adam test outperformed its counterpart in terms of the Precision and Recall metrics, evidenced by how high every bar is in Figure~\ref{fig:cnn_test1_pr}.
 
-\vspace*{-0.4cm}
+\vspace*{-0.45cm}
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/cnn_test1_sens_recall.png}
-        \caption{MLNN-Test1}
+        \caption{CNN-Test1}
         \label{fig:cnn_test1_pr}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/cnn_test2_sens_recall.png}
-        \caption{MLNN-Test2}
+        \caption{CNN-Test2}
         \label{fig:cnn_test2_pr}
     \end{subfigure}
     \vspace{-0.2cm}
@@ -406,42 +406,63 @@ This phenomenon can also be seen by how visually clear it is in Figure~\ref{fig:
 \vspace*{-0.5cm}
 
 \noindent
-Finally, Figure~\ref{fig:cnn_cm_comparison} shows how this translates into the model's classification performance.
+Finally, Figure~\ref{fig:cnn_cm_comparison} shows how this translates into the model's classification performance, bolstering a F1-score of .
 
 %\newpage
-\vspace{-0.5cm}
+\vspace{-0.6cm}
 \begin{figure}[H]
     \centering
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/cnn_test1_CM.png}
-        \caption{MLNN-Test1}
+        \caption{CNN-Test1}
         \label{fig:cnn_test1_cm}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/cnn_test2_CM.png}
-        \caption{MLNN-Test2}
+        \caption{CNN-Test2}
         \label{fig:cnn_test2_cm}
     \end{subfigure}
     \vspace{-0.2cm}
     \caption{Confusion matrices for both CNN configurations}
     \label{fig:cnn_cm_comparison}
 \end{figure}
-%\vspace{-0.5cm}
+\vspace{-1cm}
+
+\noindent
+Similarly to the previous section, a test was also ran using the Adam optimizer with a MSELoss loss function, with even worse results.
+The accuracy after 15 epochs was of about 55\%, corresponding to about a 35\% drop in performance compared to Test 1 and about 15\% compared to the same configuration for the MLNN.
+These massive differences may be due to the higher complexity of the CNN's architecture, which causes the choice of the loss function to be more impactful in its performance.
+When choosing MSELoss, a function suitable for regression, not classification, the model can struggle to learn the appropriate decision boundaries for the classification task.
+Since the MLNN model is more shallow, it is less sensitive to the choice of loss function, resulting in more stable performance in this specific scenario.
 
 \subsection{Comparative Analysis}
+One of the most striking conclusions of these tests is that the CNN consistently outperforms the MLNN in all quality metrics, with the most important result being the fact that the CNN achieves higher test accuracies compared to the MLNN by about 10\%. 
+Precision and recall values for each class are also higher for the CNN, particularly for underrepresented classes like 0 and 4, indicating better generalization even when faced with class imbalance. 
+The F1-score, which balances precision and recall, further confirms the CNN's superiority, with a noticeable margin over the MLNN (0.85 vs under 0.80). \\
+\noindent
+Another important point to be made is about what recall and specificity tells us about these models' adequacy for medical image analysis.
+These metrics are very important, since they represent a classic trade-off between identifying true positives and avoiding false positives, which can be a literal life-or-death matter in this context.
+The CNN demonstrates higher sensitivity across most classes, meaning it is more effective at correctly identifying true positives (correctly classifying blood cell types), which is the most important aspect of the trade-off in clinical scenarios.
+Specificity, or the ability to correctly identify negatives, is also improved in the CNN, as evidenced by the more balanced confusion matrices and fewer misclassifications compared to the MLNN.
+This strongly points towards the CNN being a much more reliable model in such a critical domain, improving upon the MLNN's performance in both metrics. \\
+\noindent
+It is also important to note that, due to having a simpler architecture, the MLNN trains significantly faster per epoch than the CNN (about 4-5$\times$ faster). 
+However, for how much more complex it is in terms of functionality, the CNN has significant parameter optimizations, like using simple 3$\times$3 filters in the convolutional layers instead of fully connected layers, which causes an exponential drop in the amount of parameters that need to be trained.
+These improvements really shine through during the training process, as even though the CNN takes longer to train, its capabilities ultimately cause it to require fewer epochs to reach a higher level of accuracy.
+In this case, the process speed for both models is comparable in absolute terms anyway due to the small input size, but the CNN's remains a powerful tool for larger inputs if computational power and time are not the bottleneck. \\
+\noindent
+Overall, this report allowed us to conclude that the CNN architecture demonstrates clear advantages over the MLNN for blood cell classification on the BloodMNIST dataset. 
+Its ability to use spatial information and hierarchical feature extraction leads to better performance across all evaluation metrics, validating the theoretical and practical preference for convolutional architectures in tasks of this sort. 
+The MLNN, while useful as a baseline, is limited by its inability to capture spatial dependencies, resulting in an all-around lower performance.
 
 \section{Conclusion}
-This study compared the performance of Multi-Layer Neural Networks (MLNN) and
-Convolutional Neural Networks (CNN) for blood cell classification using the BloodMNIST
-dataset. As expected, the CNN architecture outperformed the MLNN across all evaluation
-metrics, including accuracy, precision, recall, and F1-score. We were able not only to validate the
-forementioned theoretical thesis but also do so in a practical, real world scenario with
-all the complexities that entails (e.g.\ class imbalance)
+This study compared the performance of Multi-Layer Neural Networks (MLNN) and Convolutional Neural Networks (CNN) for blood cell classification using the BloodMNIST dataset. 
+As expected, the CNN architecture outperformed the MLNN across all evaluation metrics, including accuracy, precision, recall, and F1-score. 
+We were able not only to validate the aforementioned theoretical thesis but also do so in a practical, real world scenario with all the complexities that it entails (e.g.\ class imbalance)
 
-\newpage
 \begin{thebibliography}{10}
 
     \bibitem{esteva2019guide}
