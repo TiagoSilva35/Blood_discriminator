@@ -54,7 +54,7 @@ def get_metrics(cm):
     return precision, sensitivity, specificity
 
 def plot_confusion_matrix(CM, n_classes):
-    # Plot the CM
+    # plot the CM
     plt.figure(figsize=(8, 6))
     sns.heatmap(CM, annot=True, fmt='d', cmap='Blues',
                 xticklabels=[str(i) for i in range(n_classes)],

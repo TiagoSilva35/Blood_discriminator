@@ -1,0 +1,5 @@
+parte 1 já implementada, parte 2 falta implementar (baseada em transformers)
+falta tirar f1 da parte da avaliação
+relatório deve ser estilo artigo, devemos não fazer os mínimos, mas pesquisar por nós próprios
+ver estado da arte e comparar valor no artigo vs. nosso, ou até basearmo-nos na approach deles
+ver google colab
