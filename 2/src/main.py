@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from sentence_transformers import SentenceTransformer
+from transformers import pipeline
 
 from tqdm.auto import tqdm
 
@@ -16,14 +17,12 @@ from tqdm.auto import tqdm
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 BATCH_SIZE_EMB = 64
 BATCH_SIZE_TRAIN = 64
-EPOCHS = 5
+EPOCHS = [5, 10, 20]
 LR = 1e-3
 SEED = 2025
 
 ## ubuntu or windows with cuda support
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-## macos with M series support
-# DEVICE = torch.device("mps" if torch.mps.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
 
 # ---------------------------------------------------------
@@ -170,7 +169,7 @@ def prepare_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
 # ---------------------------------------------------------
 
 
-def train_ann_classifier(input_dim, num_classes, train_loader, val_loader, device):
+def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loader, device):
     ann = ANNClassifier(input_dim, num_classes).to(device)
     optimizer = torch.optim.Adam(ann.parameters(), lr=LR)
     criterion = nn.CrossEntropyLoss()
@@ -179,7 +178,7 @@ def train_ann_classifier(input_dim, num_classes, train_loader, val_loader, devic
     best_val_acc = 0.0
     best_state = None
 
-    for epoch in range(1, EPOCHS + 1):
+    for epoch in range(1, epochs + 1):
         # Training
         ann.train()
         for xb, yb in train_loader:
@@ -222,7 +221,7 @@ def train_ann_classifier(input_dim, num_classes, train_loader, val_loader, devic
 # ---------------------------------------------------------
 
 
-def evaluate_on_test(model, test_loader, device):
+def evaluate_on_test(label_names, model, test_loader, device):
     model.eval()
     preds, true = [], []
     with torch.no_grad():
@@ -239,8 +238,34 @@ def evaluate_on_test(model, test_loader, device):
     print("\n========== Test Results ==========")
     print(f"Accuracy:  {acc:.4f}")
     print("Confusion matrix:")
+    print("Labels:", label_names)
     print(cm)
 
+    return acc, cm
+
+
+def evaluate_zero_shot(label_names, X_test_texts, y_test, device):
+    # load zero-shot classification pipeline
+    zero_shot = pipeline(
+        "zero-shot-classification",
+        model="MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
+        device=0 if torch.cuda.is_available() and str(device).startswith("cuda") else -1,
+    )
+
+    preds = []
+    for text in tqdm(X_test_texts, desc="Zero-shot predicting"):
+        result = zero_shot(text, candidate_labels=label_names)
+        pred_label = result["labels"][0]
+        preds.append(label_names.index(pred_label))
+
+    acc = accuracy_score(y_test, preds)
+    cm = confusion_matrix(y_test, preds)
+
+    print("\nZero-Shot Test Results")
+    print(f"Accuracy: {acc:.4f}")
+    print("Confusion matrix:")
+    print("Labels:", label_names)
+    print(cm)
     return acc, cm
 
 
@@ -270,7 +295,6 @@ def main():
     print(f"Number of test samples: {len(X_test_texts)}")
     print(f"Example text: {X_train_texts[0]}    Label: {label_names[y_train[0]]}")
 
-    ### PART 1
     # 2) Load embedding model
     emb_model = load_embedding_model(MODEL_NAME)
 
@@ -285,13 +309,21 @@ def main():
         X_train, y_train, X_val, y_val, X_test, y_test
     )
 
-    # 5) Train ANN classifier
-    ann = train_ann_classifier(input_dim, num_classes, train_loader, val_loader, DEVICE)
+    # for epochs in EPOCHS:
+    #     # 5) Train ANN classifier
+    #     ann = train_ann_classifier(
+    #         epochs, input_dim, num_classes, train_loader, val_loader, DEVICE
+    #     )
 
-    # 6) Evaluate on test set
-    evaluate_on_test(ann, test_loader, DEVICE)
-    
+    #     ### PART 1
+
+    #     # 6) Evaluate on test set
+    #     evaluate_on_test(label_names, ann, test_loader, DEVICE)
+
     ### PART 2
+    print("\n=== Zero-Shot Emotion Classification ===")
+    evaluate_zero_shot(label_names, X_test_texts, y_test, DEVICE)
+
 
 if __name__ == "__main__":
     main()
