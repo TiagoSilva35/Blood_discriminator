@@ -13,6 +13,8 @@
 \usepackage{mdframed}
 \usepackage{hyperref}
 
+\bibliographystyle{splncs04}
+
 \begin{document}
 
 \title{Emotional Models: Text Mood Classification}
@@ -28,100 +30,140 @@
 \maketitle
 
 \begin{abstract}
-    A
+    This project explores the classification of emotional states in text using supervised and zero-shot learning approaches. 
+    We implement and compare artificial neural networks (ANNs) and transformer-based models to categorize text into six emotion classes. 
+    The methodology includes training ANNs for various epochs and evaluating their performance using confusion matrices and accuracy metrics. 
+    Additionally, we assess large pre-trained BERT models in a zero-shot setting, in order to draw comparisons between the two approaches. 
+    Experimental results demonstrate the effectiveness of both supervised and zero-shot models, with comparative analysis highlighting their strengths and limitations for these sorts of tasks.
 
-    \keywords{A \and B}
+    \keywords{Emotion Classification \and Supervised Learning \and Zero-shot Learning \and BERT \and Artificial Neural Networks}
 \end{abstract}
 
-\begin{table}[ht]
-    \centering
-    \caption{Confusion Matrix for 6-Class Classification}
-    \begin{tabular}{c|cccccc}
-        \toprule
-        \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise} \\
-        \midrule
-        \textbf{sadness }   &  &  &  &  &  &  \\
-        \textbf{joy}       &  &  &  &  &  &  \\
-        \textbf{love}      &  &  &  &  &  &  \\
-        \textbf{anger}     &  &  &  &  &  &  \\
-        \textbf{fear}      &  &  &  &  &  &  \\
-        \textbf{surprise }  &  &  &  &  &  &  \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:confusion_matrix}
-\end{table}
+\section{Methodology}
 
-\begin{table}[ht]
-    \centering
-    \caption{ANN Confusion Matrix (5 epochs, acc=0.6980)}
-    \begin{tabular}{c|cccccc}
-        \toprule
-        \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-        \midrule
-        \textbf{sadness}   & 418 & 72  & 8  & 39  & 40  & 4  \\
-        \textbf{joy}        & 36  & 574 & 33 & 26  & 22  & 4  \\
-        \textbf{love}       & 13  & 78  & 58 & 8   & 2   & 0  \\
-        \textbf{anger}      & 36  & 40  & 4  & 179 & 16  & 0  \\
-        \textbf{fear}       & 28  & 27  & 1  & 13  & 147 & 8  \\
-        \textbf{surprise}  & 7   & 20  & 1  & 4   & 14  & 20 \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:cm_ann_5}
-\end{table}
+\subsection{Dataset}
 
-\begin{table}[ht]
-    \centering
-    \caption{ANN Confusion Matrix (10 epochs, acc=0.7190)}
-    \begin{tabular}{c|cccccc}
-        \toprule
-        \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-        \midrule
-        \textbf{sadness}   & 470 & 49  & 13 & 16  & 26  & 7  \\
-        \textbf{joy}       & 55  & 537 & 49 & 20  & 27  & 7  \\
-        \textbf{love}      & 15  & 57  & 77 & 5   & 4   & 1  \\
-        \textbf{anger}     & 62  & 32  & 7  & 154 & 19  & 1  \\
-        \textbf{fear}      & 29  & 18  & 2  & 9   & 156 & 10 \\
-        \textbf{surprise}  & 8   & 15  & 2  & 3   & 12  & 26 \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:cm_ann_10}
-\end{table}
+For the purpose of classifying emotional states in text, we utilize the dataset requested in the project statement (HuggingFace's \texttt{dair-ai/emotion}\footnote{\url{https://huggingface.co/datasets/dair-ai/emotion}}), consisting of labeled examples across six emotion categories: sadness, joy, love, anger, fear, and surprise.
+The characteristics of its split version, which will be used in this project, are as follows:
 
-\begin{table}[ht]
-    \centering
-    \caption{ANN Confusion Matrix (20 epochs, acc=0.7290)}
-    \begin{tabular}{c|cccccc}
-        \toprule
-        \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-        \midrule
-        \textbf{sadness}   & 469 & 50  & 10 & 27  & 20  & 5  \\
-        \textbf{joy}       & 51  & 550 & 40 & 24  & 21  & 9  \\
-        \textbf{love}      & 17  & 54  & 76 & 9   & 2   & 1  \\
-        \textbf{anger}     & 43  & 29  & 5  & 187 & 11  & 0  \\
-        \textbf{fear}      & 32  & 17  & 2  & 14  & 149 & 10 \\
-        \textbf{surprise}  & 8   & 16  & 1  & 3   & 11  & 27 \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:cm_ann_20_new}
-\end{table}
+\begin{itemize}
+    \item \textbf{Source:} Social media (Twitter) messages
+    \item \textbf{Language:} English
+    \item \textbf{Text Length:} 7 \textrightarrow~300 characters
+    \item \textbf{Classes:} 6 (sadness, joy, love, anger, fear, surprise)
+    \item \textbf{Training Set:} 16000 labeled examples
+    \item \textbf{Validation Set:} 2000 labeled examples
+    \item \textbf{Test Set:} 2000 labeled examples
+    \item \textbf{Total:} 20000 labeled examples
+\end{itemize}
 
-\begin{table}[ht]
-    \centering
-    \caption{ModernBERT-large-zeroshot-v2.0 CM (acc=0.7250)}
-    \begin{tabular}{c|cccccc}
-        \toprule
-        \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-        \midrule
-        \textbf{sadness}   & 431 & 69  & 16 & 28  & 34  & 3  \\
-        \textbf{joy}       & 42  & 571 & 39 & 13  & 21  & 9  \\
-        \textbf{love}      & 14  & 67  & 67 & 6   & 3   & 2  \\
-        \textbf{anger}     & 25  & 27  & 4  & 191 & 19  & 9  \\
-        \textbf{fear}      & 25  & 10  & 1  & 9   & 165 & 14 \\
-        \textbf{surprise}  & 7   & 21  & 1  & 2   & 10  & 25 \\
-        \bottomrule
-    \end{tabular}
-    \label{tab:cm_ann_20_new}
-\end{table}
+\noindent Upon initially looking at the data, a challenge immediately became apparent: class imbalance. 
+Rarer emotions are heavily misrepresented (only 3.2\% of examples have a ``surprise'' label), while simpler, more common emotions which may overlap with others dominate the dataset (the ``joy'' and ``sadness'' classes hold a joint 62.7\% of the examples).
+This is an issue because the model can specialize in a subset of the classes and be biased towards them.
+In this case, completely ignoring ``surprise'' but getting every other example right would give the model a misleadingly high accuracy of approximately 96.8\%.
+This is one of the reasons why accuracy alone is not a sufficient metric for evaluating model performance in this context, and why confusion matrices and other metrics computed from them (particularly those that measure per-class performance) are very important.
+% how will ANNs deal with class imbalance compared to Zero-Shot Models? maybe talk below? leaving this here so we don't forget to mention it
+
+\noindent Another problem that stands out when analyzing the data is the reliability of its labels.
+Several of the data points show text-label pairs with a mismatch that is obvious to a human eye, with the most common pattern being lack of context undestanding.
+For example, texts like \textit{i no longer feel happy to score well} and \textit{i never feel that popular} were both labeled as ``joy'' due to their use of \textit{happy} and \textit{popular}, words that usually convey positive emotions, even though in these cases their negation is used, causing the overall sentiment to be reversed.
+Inconsistencies such as these mean that there is a cap to the performance of any model on this dataset, unless it overfits to the noise in the labels (even then, it is not guaranteed that the training and testing sets will have the same types of mismatches).
+This is shown by Kermani et al.\cite{kermani2025systematicevaluationllmstrategies} as their attempt at fine-tuning an extensive model (LLaMA-38B) for this task achieves the best performance out of the tried approaches (including zero-shot classification, which is explored in this project) at 91\%.
+
+\noindent In order to understand the dataset better, it is important to consider how it was populated.
+Though no information is provided in the Hugging Face website on this aspect, the GitHub repository containing the data\footnote{\url{https://github.com/dair-ai/emotion_dataset}} links to a paper by the authors that details the creation process \cite{saravia-etal-2018-carer} (though the repository and paper do not refer to the same dataset, they are populated in the same manner).
+The proposed model, CARER, consists of a semi-supervised, graph-based algorithm designed to create contextualized emotion representations that relies on \textit{enriched patterns}, which identify similar text structures across examples to help with classification.
+However, our manual analysis suggests that while the CARER method aims to account for context, its application in creating this specific dataset may not have fully overcome the challenge of syntactic nuance, leaving a pattern of keyword-emotion association in some entries.
+
+% \begin{table}[ht]
+%     \centering
+%     \caption{Confusion Matrix for 6-Class Classification}
+%     \begin{tabular}{c|cccccc}
+%         \toprule
+%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise} \\
+%         \midrule
+%         \textbf{sadness }   &  &  &  &  &  &  \\
+%         \textbf{joy}       &  &  &  &  &  &  \\
+%         \textbf{love}      &  &  &  &  &  &  \\
+%         \textbf{anger}     &  &  &  &  &  &  \\
+%         \textbf{fear}      &  &  &  &  &  &  \\
+%         \textbf{surprise }  &  &  &  &  &  &  \\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tab:confusion_matrix}
+% \end{table}
+
+% \begin{table}[ht]
+%     \centering
+%     \caption{ANN Confusion Matrix (5 epochs, acc=0.6980)}
+%     \begin{tabular}{c|cccccc}
+%         \toprule
+%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
+%         \midrule
+%         \textbf{sadness}   & 418 & 72  & 8  & 39  & 40  & 4  \\
+%         \textbf{joy}        & 36  & 574 & 33 & 26  & 22  & 4  \\
+%         \textbf{love}       & 13  & 78  & 58 & 8   & 2   & 0  \\
+%         \textbf{anger}      & 36  & 40  & 4  & 179 & 16  & 0  \\
+%         \textbf{fear}       & 28  & 27  & 1  & 13  & 147 & 8  \\
+%         \textbf{surprise}  & 7   & 20  & 1  & 4   & 14  & 20 \\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tab:cm_ann_5}
+% \end{table}
+
+% \begin{table}[ht]
+%     \centering
+%     \caption{ANN Confusion Matrix (10 epochs, acc=0.7190)}
+%     \begin{tabular}{c|cccccc}
+%         \toprule
+%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
+%         \midrule
+%         \textbf{sadness}   & 470 & 49  & 13 & 16  & 26  & 7  \\
+%         \textbf{joy}       & 55  & 537 & 49 & 20  & 27  & 7  \\
+%         \textbf{love}      & 15  & 57  & 77 & 5   & 4   & 1  \\
+%         \textbf{anger}     & 62  & 32  & 7  & 154 & 19  & 1  \\
+%         \textbf{fear}      & 29  & 18  & 2  & 9   & 156 & 10 \\
+%         \textbf{surprise}  & 8   & 15  & 2  & 3   & 12  & 26 \\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tab:cm_ann_10}
+% \end{table}
+
+% \begin{table}[ht]
+%     \centering
+%     \caption{ANN Confusion Matrix (20 epochs, acc=0.7290)}
+%     \begin{tabular}{c|cccccc}
+%         \toprule
+%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
+%         \midrule
+%         \textbf{sadness}   & 469 & 50  & 10 & 27  & 20  & 5  \\
+%         \textbf{joy}       & 51  & 550 & 40 & 24  & 21  & 9  \\
+%         \textbf{love}      & 17  & 54  & 76 & 9   & 2   & 1  \\
+%         \textbf{anger}     & 43  & 29  & 5  & 187 & 11  & 0  \\
+%         \textbf{fear}      & 32  & 17  & 2  & 14  & 149 & 10 \\
+%         \textbf{surprise}  & 8   & 16  & 1  & 3   & 11  & 27 \\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tab:cm_ann_20_new}
+% \end{table}
+
+% \begin{table}[ht]
+%     \centering
+%     \caption{ModernBERT-large-zeroshot-v2.0 CM (acc=0.7250)}
+%     \begin{tabular}{c|cccccc}
+%         \toprule
+%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
+%         \midrule
+%         \textbf{sadness}   & 431 & 69  & 16 & 28  & 34  & 3  \\
+%         \textbf{joy}       & 42  & 571 & 39 & 13  & 21  & 9  \\
+%         \textbf{love}      & 14  & 67  & 67 & 6   & 3   & 2  \\
+%         \textbf{anger}     & 25  & 27  & 4  & 191 & 19  & 9  \\
+%         \textbf{fear}      & 25  & 10  & 1  & 9   & 165 & 14 \\
+%         \textbf{surprise}  & 7   & 21  & 1  & 2   & 10  & 25 \\
+%         \bottomrule
+%     \end{tabular}
+%     \label{tab:cm_ann_20_new}
+% \end{table}
 
 % \section{Methodology}
 
@@ -135,43 +177,7 @@
 % \section{Conclusion}
 % A
 
-% \begin{thebibliography}{10}
-
-%     \bibitem{esteva2019guide}
-%     Esteva, A., Robicquet, A., Ramsundar, B., Kuleshov, V., DePristo, M., Chou, K., Cui, C., Corrado, G., Thrun, S., Dean, J.:
-%     A guide to deep learning in healthcare.
-%     Nature medicine 25(1), 24--29 (2019)
-
-%     \bibitem{lecun2015deep}
-%     LeCun, Y., Bengio, Y., Hinton, G.:
-%     Deep learning.
-%     Nature 521(7553), 436--444 (2015)
-
-%     \bibitem{krizhevsky2012imagenet}
-%     Krizhevsky, A., Sutskever, I., Hinton, G.E.:
-%     Imagenet classification with deep convolutional neural networks.
-%     Advances in neural information processing systems 25 (2012)
-
-%     \bibitem{habibzadeh2011comparative}
-%     Habibzadeh, M., Krzy{\.z}ak, A., Fevens, T.:
-%     Comparative study of shape, intensity and texture features and support vector machine for white blood cell classification.
-%     Journal of Theoretical and Applied Computer Science 5(1), 20--35 (2011)
-
-%     \bibitem{acevedo2020recognition}
-%     Acevedo, A., Merino, A., Alférez, S., Molina, Á., Boldú, L., Rodellar, J.:
-%     A dataset of microscopic peripheral blood cell images for development of automatic recognition systems.
-%     Data in brief 30, 105474 (2020)
-
-%     \bibitem{yang2021medmnist}
-%     Yang, J., Shi, R., Ni, B.:
-%     MedMNIST Classification Decathlon: A Lightweight AutoML Benchmark for Medical Image Analysis.
-%     IEEE 18th International Symposium on Biomedical Imaging (ISBI), 191--195 (2021)
-
-%     \bibitem{kingma2014adam}
-%     Kingma, D.P., Ba, J.:
-%     Adam: A method for stochastic optimization.
-%     arXiv preprint arXiv:1412.6980 (2014)
-
-% \end{thebibliography}
+\newpage % during development!
+\bibliography{references}
 
 \end{document}

@@ -1,8 +1,3 @@
-"""
-Módulo de classificação supervisionada.
-Contém o pipeline completo de treinamento e avaliação do modelo ANN.
-"""
-
 import numpy as np
 import torch
 from datasets import load_dataset
@@ -15,7 +10,7 @@ from metrics import compute_metrics, print_metrics
 
 
 # ---------------------------------------------------------
-# Configurações
+# Configurations
 # ---------------------------------------------------------
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -30,12 +25,13 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
 
 # ---------------------------------------------------------
-# Reprodutibilidade
+# Reproducibility
 # ---------------------------------------------------------
 
+
 def set_seed(seed: int = 42):
-    """Define seeds para reprodutibilidade."""
-    
+    """Set seeds for reproducibility."""
+
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -44,12 +40,13 @@ def set_seed(seed: int = 42):
 
 
 # ---------------------------------------------------------
-# Modelo
+# Model
 # ---------------------------------------------------------
 
+
 class ANNClassifier(nn.Module):
-    """Rede neural artificial para classificação."""
-    
+    """Artificial neural network for classification."""
+
     def __init__(self, input_dim: int, num_classes: int):
         super().__init__()
         self.net = nn.Sequential(
@@ -64,11 +61,12 @@ class ANNClassifier(nn.Module):
 
 
 # ---------------------------------------------------------
-# Funções de Pipeline
+# Pipeline Functions
 # ---------------------------------------------------------
 
+
 def load_emotion_dataset():
-    """Carrega o dataset de emoções."""
+    """Load the emotion dataset."""
     print("Loading dataset...")
     ds = load_dataset("dair-ai/emotion")
     train_ds = ds["train"]
@@ -104,14 +102,14 @@ def load_emotion_dataset():
 
 
 def load_embedding_model(model_name: str):
-    """Carrega o modelo de embeddings."""
+    """Load the embedding model."""
     print(f"\nLoading embedding model: {model_name}")
     model = SentenceTransformer(model_name)
     return model
 
 
 def compute_embeddings(model, X_train_texts, X_val_texts, X_test_texts):
-    """Gera embeddings para os textos."""
+    """Generate embeddings for the texts."""
     print("\nComputing embeddings...")
     X_train = model.encode(
         X_train_texts,
@@ -141,7 +139,7 @@ def compute_embeddings(model, X_train_texts, X_val_texts, X_test_texts):
 
 
 def prepare_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
-    """Prepara DataLoaders do PyTorch."""
+    """Prepare PyTorch DataLoaders."""
     train_loader = DataLoader(
         TensorDataset(
             torch.tensor(X_train, dtype=torch.float32),
@@ -169,8 +167,10 @@ def prepare_dataloaders(X_train, y_train, X_val, y_val, X_test, y_test):
     return train_loader, val_loader, test_loader
 
 
-def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loader, device):
-    """Treina o classificador ANN."""
+def train_ann_classifier(
+    epochs, input_dim, num_classes, train_loader, val_loader, device
+):
+    """Train the ANN classifier."""
     ann = ANNClassifier(input_dim, num_classes).to(device)
     optimizer = torch.optim.Adam(ann.parameters(), lr=LR)
     criterion = nn.CrossEntropyLoss()
@@ -180,7 +180,7 @@ def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loade
     best_state = None
 
     for epoch in range(1, epochs + 1):
-        # Training
+        # training
         ann.train()
         for xb, yb in train_loader:
             xb = xb.to(device)
@@ -192,7 +192,7 @@ def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loade
             loss.backward()
             optimizer.step()
 
-        # Validation
+        # validation
         ann.eval()
         preds, true = [], []
         with torch.no_grad():
@@ -210,7 +210,7 @@ def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loade
             best_val_acc = val_acc
             best_state = ann.state_dict()
 
-    # Carregar melhor modelo
+    # load best model
     if best_state is not None:
         ann.load_state_dict(best_state)
         print(f"  Best val_acc: {best_val_acc:.4f}")
@@ -219,7 +219,7 @@ def train_ann_classifier(epochs, input_dim, num_classes, train_loader, val_loade
 
 
 def evaluate_on_test(model, test_loader, device):
-    """Avalia o modelo no conjunto de teste."""
+    """Evaluate the model on the test set."""
     model.eval()
     preds, true = [], []
     with torch.no_grad():
@@ -236,7 +236,7 @@ def evaluate_on_test(model, test_loader, device):
 def train_and_evaluate_supervised():
     set_seed(SEED)
     print(f"Using device: {DEVICE}")
-    
+
     (
         X_train_texts,
         y_train,
@@ -260,29 +260,31 @@ def train_and_evaluate_supervised():
     )
 
     results = {}
-    
+
     for epochs in EPOCHS:
         print(f"# Training with {epochs} epochs")
-        
-        # Treinar modelo
+
+        # train model
         ann = train_ann_classifier(
             epochs, input_dim, num_classes, train_loader, val_loader, DEVICE
         )
 
-        # Avaliar no conjunto de teste
+        # evaluate on test set
         y_true, y_pred = evaluate_on_test(ann, test_loader, DEVICE)
-        
-        # Calcular métricas
+
+        # compute metrics
         metrics = compute_metrics(y_true, y_pred, label_names)
-        
-        # Exibir resultados
-        print_metrics(metrics, label_names, model_name=f"ANN Supervised ({epochs} epochs)")
-        
-        # Armazenar resultados
+
+        # display results
+        print_metrics(
+            metrics, label_names, model_name=f"ANN Supervised ({epochs} epochs)"
+        )
+
+        # store results
         results[f"{epochs}_epochs"] = {
-            'model': ann,
-            'metrics': metrics,
-            'label_names': label_names
+            "model": ann,
+            "metrics": metrics,
+            "label_names": label_names,
         }
-    
+
     return results, (X_test_texts, y_test, label_names)
