@@ -12,6 +12,10 @@
 \usepackage{subcaption}
 \usepackage{mdframed}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{float}
+\pgfplotsset{compat=1.18}
 
 \bibliographystyle{splncs04}
 
@@ -57,6 +61,32 @@ The characteristics of its split version, which will be used in this project, ar
     \item \textbf{Total:} 20000 labeled examples
 \end{itemize}
 
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            ybar,
+            bar width=30pt,
+            width=0.8\textwidth,
+            height=6cm,
+            ymin=0,
+            ymax=100,
+            xtick=data,
+            xticklabels={joy, sadness, anger, fear, love, surprise},
+            ylabel={Percentage (\%)},
+            title={Fig. 1: Label Distribution in the Dataset},
+            nodes near coords,
+            nodes near coords align={vertical},
+            enlarge x limits=0.15,
+            grid=major,
+        ]
+        \addplot coordinates {(0,33.5) (1,29.2) (2,13.5) (3,12.1) (4,8.2) (5,3.2)};
+        \end{axis}
+    \end{tikzpicture}
+    \label{fig:label_distribution}
+\end{figure}
+\vspace{-0.5cm}
+
 \noindent Upon initially looking at the data, a challenge immediately became apparent: class imbalance. 
 Rarer emotions are heavily misrepresented (only 3.2\% of examples have a ``surprise'' label), while simpler, more common emotions which may overlap with others dominate the dataset (the ``joy'' and ``sadness'' classes hold a joint 62.7\% of the examples).
 This is an issue because the model can specialize in a subset of the classes and be biased towards them.
@@ -71,9 +101,24 @@ Inconsistencies such as these mean that there is a cap to the performance of any
 This is shown by Kermani et al.\cite{kermani2025systematicevaluationllmstrategies} as their attempt at fine-tuning an extensive model (LLaMA-38B) for this task achieves the best performance out of the tried approaches (including zero-shot classification, which is explored in this project) at 91\%.
 
 \noindent In order to understand the dataset better, it is important to consider how it was populated.
-Though no information is provided in the Hugging Face website on this aspect, the GitHub repository containing the data\footnote{\url{https://github.com/dair-ai/emotion_dataset}} links to a paper by the authors that details the creation process \cite{saravia-etal-2018-carer} (though the repository and paper do not refer to the same dataset, they are populated in the same manner).
+Though no information is provided in the HuggingFace website on this aspect, the GitHub repository containing the data\footnote{\url{https://github.com/dair-ai/emotion_dataset}} links to a paper by the authors that details the creation process \cite{saravia-etal-2018-carer} (though the repository and paper do not refer to the same dataset, they are populated in the same manner).
 The proposed model, CARER, consists of a semi-supervised, graph-based algorithm designed to create contextualized emotion representations that relies on \textit{enriched patterns}, which identify similar text structures across examples to help with classification.
 However, our manual analysis suggests that while the CARER method aims to account for context, its application in creating this specific dataset may not have fully overcome the challenge of syntactic nuance, leaving a pattern of keyword-emotion association in some entries.
+
+\subsection{Implementation}
+The main goal of this project is to explore and compare supervised and zero-shot learning approaches for emotion classification using a modular and reproducible experimental setup.
+It is implemented in Python and organized into modular scripts to facilitate experimentation.
+
+\noindent The supervised learning pipeline is defined in \texttt{supervised.py}, which is an adaptation of the code initially provided with this assignment, where artificial neural networks (ANNs) are constructed and trained using the dataset. 
+The script relies on PyTorch for model definition, training, and evaluation. 
+Training progress and results, including confusion matrices and accuracy metrics, are logged for analysis. 
+The main orchestration of experiments, including data loading, model selection, and evaluation, is handled in \texttt{main.py}.
+
+\noindent For zero-shot classification, \texttt{zero\_shot.py} utilizes transformer models from the HuggingFace library, such as BERT.
+It differs from the previous approach by performing data point classification without explicit training on the dataset labels, instead infering emotions directly from text using pre-trained language representations.
+
+\noindent Supporting modules include \texttt{metrics.py}, which provides functions for computing evaluation metrics such as accuracy and F1-score, and \texttt{logs.py}, which handles experiment logging for ease of access to the results after it is conducted.
+
 
 % \begin{table}[ht]
 %     \centering
