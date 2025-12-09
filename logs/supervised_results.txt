@@ -1,0 +1,102 @@
+Model: 5_epochs specs: ANNClassifier(
+  (net): Sequential(
+    (0): Linear(in_features=384, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=256, out_features=6, bias=True)
+  )
+)
+Accuracy: 0.6935
+Macro F1: 0.6055
+Confusion Matrix:
+[[467  50  10  22  26   6]
+ [ 58 536  54  20  22   5]
+ [ 20  62  69   4   4   0]
+ [ 65  31   6 155  18   0]
+ [ 41  21   2  13 137  10]
+ [  7  16   2   4  14  23]]
+Classification Report:
+              precision    recall  f1-score   support
+
+     sadness       0.71      0.80      0.75       581
+         joy       0.75      0.77      0.76       695
+        love       0.48      0.43      0.46       159
+       anger       0.71      0.56      0.63       275
+        fear       0.62      0.61      0.62       224
+    surprise       0.52      0.35      0.42        66
+
+    accuracy                           0.69      2000
+   macro avg       0.63      0.59      0.61      2000
+weighted avg       0.69      0.69      0.69      2000
+
+
+==================================================
+
+Model: 10_epochs specs: ANNClassifier(
+  (net): Sequential(
+    (0): Linear(in_features=384, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=256, out_features=6, bias=True)
+  )
+)
+Accuracy: 0.7210
+Macro F1: 0.6358
+Confusion Matrix:
+[[463  60   8  28  17   5]
+ [ 47 573  37  20  13   5]
+ [ 16  70  64   8   1   0]
+ [ 49  32   3 181   9   1]
+ [ 40  20   0  17 135  12]
+ [  6  21   0   3  10  26]]
+Classification Report:
+              precision    recall  f1-score   support
+
+     sadness       0.75      0.80      0.77       581
+         joy       0.74      0.82      0.78       695
+        love       0.57      0.40      0.47       159
+       anger       0.70      0.66      0.68       275
+        fear       0.73      0.60      0.66       224
+    surprise       0.53      0.39      0.45        66
+
+    accuracy                           0.72      2000
+   macro avg       0.67      0.61      0.64      2000
+weighted avg       0.71      0.72      0.71      2000
+
+
+==================================================
+
+Model: 20_epochs specs: ANNClassifier(
+  (net): Sequential(
+    (0): Linear(in_features=384, out_features=256, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=256, out_features=6, bias=True)
+  )
+)
+Accuracy: 0.7280
+Macro F1: 0.6495
+Confusion Matrix:
+[[439  74  11  29  23   5]
+ [ 41 562  41  22  24   5]
+ [ 12  61  77   7   2   0]
+ [ 27  31   6 196  14   1]
+ [ 24  15   2  15 159   9]
+ [  6  19   0   3  15  23]]
+Classification Report:
+              precision    recall  f1-score   support
+
+     sadness       0.80      0.76      0.78       581
+         joy       0.74      0.81      0.77       695
+        love       0.56      0.48      0.52       159
+       anger       0.72      0.71      0.72       275
+        fear       0.67      0.71      0.69       224
+    surprise       0.53      0.35      0.42        66
+
+    accuracy                           0.73      2000
+   macro avg       0.67      0.64      0.65      2000
+weighted avg       0.73      0.73      0.72      2000
+
+
+==================================================
+

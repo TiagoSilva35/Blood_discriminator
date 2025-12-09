@@ -24,13 +24,14 @@ def main():
     print("PART 2: ZERO-SHOT LEARNING")
 
     zero_shot_results = evaluate_zero_shot_models(X_test_texts, y_test, label_names)
-    compare_supervised_configs(zero_shot_results, label_names)
-    retrieve_top_mistakes(
-        zero_shot_results['20_epochs']['metrics']['confusion_matrix'],
-        label_names,
-        top_n=5
-    )
-    save_logs(zero_shot_results, "logs/zero_shot_results.txt")
+    models_list = list(zero_shot_results.keys())
+    for model_name in models_list:
+        retrieve_top_mistakes(
+            zero_shot_results[model_name]['metrics']['confusion_matrix'],
+            label_names,
+            top_n=5
+        )
+    # save_logs(zero_shot_results, "logs/zero_shot_results.txt")
     print("FINAL COMPARISON")
     # Supervised results
     for config_name, result in supervised_results.items():
