@@ -11,9 +11,9 @@ from metrics import compute_metrics, print_metrics
 
 # zero-Shot Models to be compared
 ZERO_SHOT_MODELS = [
-    "MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
     "facebook/bart-large-mnli",
-    "joeddav/xlm-roberta-large-xnli",
+    "MoritzLaurer/deberta-v3-large-zeroshot-v2.0",
+    "MoritzLaurer/deberta-v3-xsmall-zeroshot-v1.1-all-33"
 ]
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

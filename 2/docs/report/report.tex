@@ -119,9 +119,13 @@ The main orchestration of experiments, including data loading, model selection, 
 \noindent For zero-shot classification, \texttt{zero\_shot.py} utilizes transformer models from the HuggingFace library, such as BERT.
 It differs from the previous approach by performing data point classification without explicit training on the dataset labels, instead infering emotions directly from text using pre-trained language representations.
 
-\noindent Supporting modules include \texttt{metrics.py}, which provides functions for computing evaluation metrics such as accuracy and F1-score, and \texttt{logs.py}, which handles experiment logging for ease of access to the results after it is conducted.
-
-
+\noindent Supporting modules include \texttt{metrics.py}, which provides functions for computing evaluation metrics such as accuracy, F1-score and comparative analysis utilities. Beyond basic metrics, we implement specialized analysis functions in \texttt{metrics.py}:
+\begin{itemize}
+    \item \texttt{compare\_supervised\_configs}: Tracks the evolution of per-class recall, specificity, and precision across different training epochs (5, 10, 20), identifying which emotions benefit from longer training and which plateau or degrade (potential overfitting).
+    \item \texttt{extract\_top\_confusions}: Identifies the most frequent misclassification patterns globally, revealing systematic errors (e.g., confusing ``love'' with ``joy'', which accounts for 34.6\% of ``love'' misclassifications).
+    \item \texttt{analyze\_class\_mistakes}: Analyzes confusions for individual classes, showing which emotions are most often misclassified as a given target emotion.
+\end{itemize}
+Finnaly, we log all experimental results and configurations using \texttt{logs.py} for the consequent analysis and comparison of different models and settings.
 % \begin{table}[ht]
 %     \centering
 %     \caption{Confusion Matrix for 6-Class Classification}
