@@ -13,6 +13,7 @@
 \usepackage{mdframed}
 \usepackage{hyperref}
 \usepackage{tikz}
+\usetikzlibrary{positioning}
 \usepackage{pgfplots}
 \usepackage{float}
 \pgfplotsset{compat=1.18}
@@ -107,6 +108,58 @@ Though no information is provided in the HuggingFace website on this aspect, the
 The proposed model, CARER, consists of a semi-supervised, graph-based algorithm designed to create contextualized emotion representations that relies on \textit{enriched patterns}, which identify similar text structures across examples to help with classification.
 However, our manual analysis suggests that while the CARER method aims to account for context, its application in creating this specific dataset may not have fully overcome the challenge of syntactic nuance, leaving a pattern of keyword-emotion association in some entries.
 
+\subsection{Experimental Pipeline}
+The experimental pipeline for this project is illustrated in Figure~\ref{fig:pipeline}, showcasing the two main approaches: supervised learning using artificial neural networks (ANNs) and zero-shot classification with pre-trained transformer models.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        scale=0.75,
+        transform shape,
+        node distance=0.9cm and 1.2cm,
+        box/.style={rectangle, draw, fill=blue!15, text width=2.4cm, align=center, rounded corners, minimum height=0.75cm, font=\footnotesize},
+        arrow/.style={->, >=stealth, thick}
+    ]
+    
+    % Top: Dataset
+    \node[box, fill=green!15] (data) {Dataset\\20k samples};
+    
+    % Split
+    \node[box, fill=green!10, below=0.6cm of data] (split) {Train/Val/Test\\80/10/10\%};
+    
+    % Supervised branch (left)
+    \node[box, fill=blue!15, below left=0.6cm and 1.6cm of split] (embed) {Text Embeddings\\SentenceTransformer\\(384-dim)};
+    \node[box, fill=orange!15, below=0.6cm of embed] (ann) {ANN Classifier\\256 neurons};
+    \node[box, fill=purple!15, below=0.6cm of ann] (train) {Train\\5/10/20 epochs};
+    
+    % Zero-shot branch (right)
+    \node[box, fill=cyan!15, below right=0.6cm and 1.6cm of split] (zs) {Zero-Shot\\Pre-trained NLI};
+    \node[box, fill=orange!15, below=0.6cm of zs] (models) {3 Models\\22M-434M params};
+    
+    % Evaluation (bottom center)
+    \node[box, fill=red!15, text width=3cm, below=1.8cm of split] (eval) {Evaluation\\Accuracy, F1, Conf. Matrix};
+    
+    % Comparison (final)
+    \node[box, fill=yellow!15, text width=3cm, below=0.6cm of eval] (comp) {Comparative Analysis};
+    
+    % Arrows
+    \draw[arrow] (data) -- (split);
+    \draw[arrow] (split) -- (embed);
+    \draw[arrow] (embed) -- (ann);
+    \draw[arrow] (ann) -- (train);
+    \draw[arrow] (train) -- (eval);
+    \draw[arrow] (split) -- (zs);
+    \draw[arrow] (zs) -- (models);
+    \draw[arrow] (models) -- (eval);
+    \draw[arrow] (eval) -- (comp);
+    
+    \node[text=blue!70!black, font=\scriptsize\bfseries, rotate=90] at ([xshift=-0.7cm]ann.west) {Supervised};
+    \node[text=cyan!70!black, font=\scriptsize\bfseries, rotate=90] at ([xshift=0.7cm]models.east) {Zero-Shot};
+        
+    \end{tikzpicture}
+    \caption{Experimental pipeline overview: supervised learning (left) trains an ANN on embeddings, while zero-shot (right) uses pre-trained models directly.}
+    \label{fig:pipeline}
+\end{figure}
+
 \subsection{Implementation}
 The main goal of this project is to explore and compare supervised and zero-shot learning approaches for emotion classification using a modular and reproducible experimental setup.
 It is implemented in Python and organized into modular scripts to facilitate experimentation.
@@ -118,6 +171,33 @@ The main orchestration of experiments, including data loading, model selection, 
 
 \noindent For zero-shot classification, \texttt{zero\_shot.py} utilizes transformer models from the HuggingFace library, such as BERT.
 It differs from the previous approach by performing data point classification without explicit training on the dataset labels, instead infering emotions directly from text using pre-trained language representations.
+The selected models for zero-shot classification aim to cover a range of sizes and capabilities, from large models like BART-large-mnli to more compact ones like DeBERTa-v3-xsmall-zeroshot, allowing for a comparative analysis of performance versus computational efficiency.
+
+
+\noindent The following table summarizes the models evaluated in both supervised and zero-shot settings:
+\begin{table}[htbp]
+    \centering
+    \caption{Model Specifications and Configurations}
+    \label{tab:model_specs}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Model} & \textbf{Parameters} & \textbf{Training Objective} \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Supervised Approach}} \\
+        \midrule
+        ANNClassifier (5 epochs) & 98,566 & Cross-Entropy Loss \\
+        ANNClassifier (10 epochs) & 98,566 & Cross-Entropy Loss \\
+        ANNClassifier (20 epochs) & 98,566 & Cross-Entropy Loss \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Zero-Shot Approach}} \\
+        \midrule
+        BART-large-mnli & 406M & NLI (MNLI) \\
+        DeBERTa-v3-large-zeroshot & 434M & NLI + Zero-shot \\
+        DeBERTa-v3-xsmall-zeroshot & 22M & NLI + Zero-shot \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 
 \noindent Supporting modules include \texttt{metrics.py}, which provides functions for computing evaluation metrics such as accuracy, F1-score and comparative analysis utilities. Beyond basic metrics, we implement specialized analysis functions in \texttt{metrics.py}:
 \begin{itemize}
@@ -125,110 +205,232 @@ It differs from the previous approach by performing data point classification wi
     \item \texttt{extract\_top\_confusions}: Identifies the most frequent misclassification patterns globally, revealing systematic errors (e.g., confusing ``love'' with ``joy'', which accounts for 34.6\% of ``love'' misclassifications).
     \item \texttt{analyze\_class\_mistakes}: Analyzes confusions for individual classes, showing which emotions are most often misclassified as a given target emotion.
 \end{itemize}
-Finnaly, we log all experimental results and configurations using \texttt{logs.py} for the consequent analysis and comparison of different models and settings.
-% \begin{table}[ht]
-%     \centering
-%     \caption{Confusion Matrix for 6-Class Classification}
-%     \begin{tabular}{c|cccccc}
-%         \toprule
-%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise} \\
-%         \midrule
-%         \textbf{sadness }   &  &  &  &  &  &  \\
-%         \textbf{joy}       &  &  &  &  &  &  \\
-%         \textbf{love}      &  &  &  &  &  &  \\
-%         \textbf{anger}     &  &  &  &  &  &  \\
-%         \textbf{fear}      &  &  &  &  &  &  \\
-%         \textbf{surprise }  &  &  &  &  &  &  \\
-%         \bottomrule
-%     \end{tabular}
-%     \label{tab:confusion_matrix}
-% \end{table}
+Finally, we log all experimental results and configurations using \texttt{logs.py} for the consequent analysis and comparison of different models and settings.
 
-% \begin{table}[ht]
-%     \centering
-%     \caption{ANN Confusion Matrix (5 epochs, acc=0.6980)}
-%     \begin{tabular}{c|cccccc}
-%         \toprule
-%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-%         \midrule
-%         \textbf{sadness}   & 418 & 72  & 8  & 39  & 40  & 4  \\
-%         \textbf{joy}        & 36  & 574 & 33 & 26  & 22  & 4  \\
-%         \textbf{love}       & 13  & 78  & 58 & 8   & 2   & 0  \\
-%         \textbf{anger}      & 36  & 40  & 4  & 179 & 16  & 0  \\
-%         \textbf{fear}       & 28  & 27  & 1  & 13  & 147 & 8  \\
-%         \textbf{surprise}  & 7   & 20  & 1  & 4   & 14  & 20 \\
-%         \bottomrule
-%     \end{tabular}
-%     \label{tab:cm_ann_5}
-% \end{table}
+\section{Results}
+In this section we seek to analyze and compare the performance of supervised learning models (ANNs) and zero-shot classification models. To do so we start
+by presenting an overall comparisson and, subsequently, detail each aproach to expose the what's and why's behind the results obtained. 
 
-% \begin{table}[ht]
-%     \centering
-%     \caption{ANN Confusion Matrix (10 epochs, acc=0.7190)}
-%     \begin{tabular}{c|cccccc}
-%         \toprule
-%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-%         \midrule
-%         \textbf{sadness}   & 470 & 49  & 13 & 16  & 26  & 7  \\
-%         \textbf{joy}       & 55  & 537 & 49 & 20  & 27  & 7  \\
-%         \textbf{love}      & 15  & 57  & 77 & 5   & 4   & 1  \\
-%         \textbf{anger}     & 62  & 32  & 7  & 154 & 19  & 1  \\
-%         \textbf{fear}      & 29  & 18  & 2  & 9   & 156 & 10 \\
-%         \textbf{surprise}  & 8   & 15  & 2  & 3   & 12  & 26 \\
-%         \bottomrule
-%     \end{tabular}
-%     \label{tab:cm_ann_10}
-% \end{table}
 
-% \begin{table}[ht]
-%     \centering
-%     \caption{ANN Confusion Matrix (20 epochs, acc=0.7290)}
-%     \begin{tabular}{c|cccccc}
-%         \toprule
-%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-%         \midrule
-%         \textbf{sadness}   & 469 & 50  & 10 & 27  & 20  & 5  \\
-%         \textbf{joy}       & 51  & 550 & 40 & 24  & 21  & 9  \\
-%         \textbf{love}      & 17  & 54  & 76 & 9   & 2   & 1  \\
-%         \textbf{anger}     & 43  & 29  & 5  & 187 & 11  & 0  \\
-%         \textbf{fear}      & 32  & 17  & 2  & 14  & 149 & 10 \\
-%         \textbf{surprise}  & 8   & 16  & 1  & 3   & 11  & 27 \\
-%         \bottomrule
-%     \end{tabular}
-%     \label{tab:cm_ann_20_new}
-% \end{table}
+\subsection{Overall Performance Comparison}
+Table~\ref{tab:overall_results} presents the test accuracy and macro F1-score for all evaluated models across both supervised and zero-shot paradigms.
+\begin{table}[H]
+    \centering
+    \caption{Overall Performance Comparison (Test Set)}
+    \label{tab:overall_results}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Model} & \textbf{Accuracy} & \textbf{Macro F1} \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Supervised Learning}} \\
+        \midrule
+        ANN (5 epochs)  & 0.6935 & 0.6055 \\
+        ANN (10 epochs) & 0.7210 & 0.6358 \\
+        ANN (20 epochs) & \textbf{0.7280} & \textbf{0.6495} \\
+        \midrule
+        \multicolumn{3}{c}{\textit{Zero-Shot Classification}} \\
+        \midrule
+        BART-large-mnli & 0.3765 & 0.3838 \\
+        DeBERTa-v3-large & 0.7170 & 0.6417 \\
+        DeBERTa-v3-xsmall & 0.6945 & 0.6226 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-% \begin{table}[ht]
-%     \centering
-%     \caption{ModernBERT-large-zeroshot-v2.0 CM (acc=0.7250)}
-%     \begin{tabular}{c|cccccc}
-%         \toprule
-%         \textbf{ Pred. / Real } & \textbf{ sadness} & \textbf{joy} & \textbf{love} & \textbf{anger} & \textbf{fear} & \textbf{surprise } \\
-%         \midrule
-%         \textbf{sadness}   & 431 & 69  & 16 & 28  & 34  & 3  \\
-%         \textbf{joy}       & 42  & 571 & 39 & 13  & 21  & 9  \\
-%         \textbf{love}      & 14  & 67  & 67 & 6   & 3   & 2  \\
-%         \textbf{anger}     & 25  & 27  & 4  & 191 & 19  & 9  \\
-%         \textbf{fear}      & 25  & 10  & 1  & 9   & 165 & 14 \\
-%         \textbf{surprise}  & 7   & 21  & 1  & 2   & 10  & 25 \\
-%         \bottomrule
-%     \end{tabular}
-%     \label{tab:cm_ann_20_new}
-% \end{table}
+\noindent The supervised ANN trained for 20 epochs achieves the highest overall performance (72.80\% accuracy, 0.6495 macro F1), narrowly outperforming the best zero-shot model, DeBERTa-v3-large (71.70\% accuracy, 0.6417 macro F1).
+The supervised model's advantage is minimal (1.1 percentage points), suggesting that zero-shot approaches can match task-specific training when using appropriately designed models.
 
-% \section{Methodology}
+\noindent However, the huge contrast between DeBERTa variants and BART-large-mnli show that model selection in zero-shot settings is paramount to achieving strong performance.
+In this regard, we conducted a thorough research on the training methodologies of each model, which is detailed in Section 2.4.
 
-% \subsection{Dataset}
+\subsection{Supervised Learning: Training duration}
 
-% \section{Results}
+Figure~\ref{fig:supervised_evolution} illustrates the evolution of performance metrics across different training configurations.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=6cm,
+            xlabel={Training Epochs},
+            ylabel={Score},
+            ymin=0.58,
+            ymax=0.74,
+            xtick={5,10,20},
+            legend pos=south east,
+            grid=major,
+            ymajorgrids=true,
+            xmajorgrids=true,
+        ]
+        \addplot[color=blue, mark=*, thick] coordinates {(5, 0.6935) (10, 0.7210) (20, 0.7280)};
+        \addplot[color=red, mark=square*, thick] coordinates {(5, 0.6055) (10, 0.6358) (20, 0.6495)};
+        \legend{Accuracy, Macro F1}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Performance evolution of supervised ANN across training epochs.}
+    \label{fig:supervised_evolution}
+\end{figure}
 
-% \subsection{Comparative Analysis}
-% a
+\noindent In summary, training for additional epochs yields diminishing returns: the improvement from 5 to 10 epochs is substantial (+2.75 percentage points accuracy, +3.03 pp F1), while further training to 20 epochs provides only marginal gains (+0.70 pp accuracy, +1.37 pp F1).
+This plateau suggests that the model's capacity to learn from the training data is approaching saturation.
+Further improvements would likely require architectural changes, regularization techniques to address class imbalance, or data augmentation rather than extended training.
+Also, the point of using this aproach was showing how a lightweight head on top of embeddings can achieve good results with minimal training, which was accomplished.
 
-% \section{Conclusion}
-% A
 
-\newpage % during development!
+\subsection{Per-Class Performance Analysis}
+
+Table~\ref{tab:per_class_comparison} compares per-class F1-scores between the best supervised model (ANN-20) and the best zero-shot model (DeBERTa-v3-large), revealing both approaches' strengths and weaknesses.
+
+\begin{table}[H]
+    \centering
+    \caption{Per-Class F1-Score Comparison: Supervised vs Zero-Shot}
+    \label{tab:per_class_comparison}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Class} & \textbf{Support} & \textbf{ANN-20} & \textbf{DeBERTa-L} & \textbf{$\Delta$} \\
+        \midrule
+        Sadness  & 581 & 0.78 & 0.76 & +0.02 \\
+        Joy      & 695 & 0.77 & 0.78 & -0.01 \\
+        Anger    & 275 & 0.72 & 0.72 & 0.00 \\
+        Fear     & 224 & 0.69 & 0.70 & -0.01 \\
+        Love     & 159 & 0.52 & 0.48 & +0.04 \\
+        Surprise & 66  & 0.42 & 0.41 & +0.01 \\
+        \midrule
+        \textbf{Macro Avg} & -- & \textbf{0.65} & 0.64 & +0.01 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent The two approaches achieve nearly identical performance across all classes, suggesting that pre-trained language understanding can effectively substitute for task-specific training when models are appropriately designed for zero-shot inference.
+
+\noindent Both models perform best on high-frequency classes (sadness, joy: F1 $>$ 0.76) and struggle with rare emotions (surprise: F1 $\approx$ 0.41).
+This may be caused by two diferent factors: the supervised model's limited exposure to rare classes during training, and the zero-shot model's reliance on general language patterns that may not capture the nuances of ambiguous emotions.
+The cap on the literature performance for this dataset (around 91\% according to Kermani et al. \cite{kermani2025systematicevaluationllmstrategies}) was achieved through fine-tuning, which enabled the model to learn the 
+dataset's generator's distribution and idiosyncrasies, which is out of scope for this project.
+
+\subsection{Zero-Shot Model Comparison: Size vs Performance}
+
+The relationship between model size and zero-shot performance is non-trivial, as shown in Table~\ref{tab:zeroshot_size}.
+
+\begin{table}[H]
+    \centering
+    \label{tab:zeroshot_size}
+    \caption{Zero-Shot Model Size vs Performance Trade-off}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Model} & \textbf{Parameters} & \textbf{Accuracy} & \textbf{Macro F1} \\
+        \midrule
+        DeBERTa-v3-xsmall & 22M  & 0.6945 & 0.6226 \\
+        BART-large-mnli   & 406M & 0.3765 & 0.3838 \\
+        DeBERTa-v3-large  & 434M & \textbf{0.7170} & \textbf{0.6417} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent The comparison reveals a non-standard relationship between model size and performance.
+The smallest model (DeBERTa-v3-xsmall, 22M parameters) dramatically outperforms BART-large (406M) by 31.8 percentage points in accuracy, demonstrating that \textit{training data composition matters more than parameter count}.
+
+\noindent This performance gap can be attributed to differences in training methodology:
+\begin{itemize}
+    \item \textbf{DeBERTa-v3-xsmall}: Aggressively trained on human-labeled NLI datasets, including \textit{emotion classification tasks} in its training distribution. This direct exposure to emotion-related data provides strong inductive biases for this specific task.
+    \item \textbf{DeBERTa-v3-large}: Trained on a mix of human-labeled and synthetic data, which increases diversity but dilutes task-specific signal. The additional 412M parameters provide only modest gains (+2.25 pp accuracy) over xsmall, suggesting diminishing returns when the training distribution already covers the target task.
+    \item \textbf{BART-large}: Trained exclusively on MNLI without emotion-specific data, resulting in poor generalization despite its large capacity.
+\end{itemize}
+
+\noindent The xsmall model's competitive performance (69.45\%, only 2.25 pp below the large variant) highlights an important practical insight: for emotion classification, a compact model trained on task-relevant data outperforms larger models trained on generic NLI corpora.
+This suggests that for resource-constrained deployments, DeBERTa-v3-xsmall offers an optimal balance of performance and computational efficiency, particularly when the deployment scenario aligns with its training distribution. 
+However, we can infer that if another task was to be solved, the large variant would likely outperform the small one due to its increased capacity and broader training data, making the performance difference more visible.
+
+\subsection{Error Pattern Analysis}
+
+\subsubsection{Supervised Learning Error Patterns}
+
+Table~\ref{tab:supervised_confusions} presents the most frequent misclassifications for the best supervised model (ANN-20).
+
+\begin{table}[H]
+    \centering
+    \caption{Top-5 Confusion Patterns: Supervised ANN (20 epochs)}
+    \label{tab:supervised_confusions}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{True} & \textbf{Prediction} & \textbf{Count} & \textbf{\%} \\
+        \midrule
+        Love     & Joy     & 61 & 38.4\% \\
+        Sadness  & Joy     & 74 & 12.7\% \\
+        Anger    & Joy     & 31 & 11.3\% \\
+        Surprise & Joy     & 19 & 28.8\% \\
+        Surprise & Fear    & 15 & 22.7\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent The dominant error pattern is over-prediction of ``joy'', the most frequent class (38.4\% of training data).
+This suggests the model has learned a bias toward the majority class, particularly for related emotions (e.g.,  i got home feeling hot tired and great
+ labeled as ``love'' instead of ``joy'') which is not necessarily wrong, but rather ambiguous. The confusion between Sadness and Joy may seem counterintuitive but,
+ upon closer inspection we find examples such as \textit{ i stop feeling guilty} which is labeled as sadness but could be interpreted as joy depending on context.
+Similarly, the confusion between Surprise and Fear reflects their semantic proximity.  
+
+\noindent These patterns reflect genuine semantic overlap rather than pure model failure, as evidenced by similar confusions in zero-shot models (see Section 3.5.2).
+
+\subsubsection{Zero-Shot Error Patterns: BART Failure Case}
+
+BART-large-mnli's catastrophic failure (37.65\% accuracy) is explained by extreme prediction bias toward ``surprise'', as shown in Table~\ref{tab:bart_confusions}.
+
+\begin{table}[H]
+    \centering
+    \caption{Top-5 Confusion Patterns: BART-large-mnli}
+    \label{tab:bart_confusions}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{True Label} & \textbf{Predicted As} & \textbf{Count} & \textbf{\% of Class} \\
+        \midrule
+        Joy      & Surprise & 362 & 52.1\% \\
+        Love     & Surprise & 79  & 49.7\% \\
+        Fear     & Surprise & 110 & 49.1\% \\
+        Sadness  & Surprise & 266 & 45.8\% \\
+        Anger    & Surprise & 125 & 45.5\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent BART predicts ``surprise'' for approximately 50\% of \textit{all} classes, resulting in:
+\begin{itemize}
+    \item 86\% recall for surprise (57/66 correct predictions)
+    \item Only 6\% precision (57 correct out of 999 total ``surprise'' predictions)
+\end{itemize}
+
+\noindent This failure likely stems from the hypothesis template used in zero-shot classification: \textit{``This text expresses surprise''}.
+BART's pre-training on MNLI may have caused it to assign disproportionately high entailment scores to this specific phrasing, regardless of actual text content.
+This highlights a critical limitation: zero-shot performance is highly sensitive to hypothesis template design and model-specific biases from pre-training.
+
+\subsubsection{Zero-Shot Error Patterns: DeBERTa Models}
+
+In contrast to BART, DeBERTa models exhibit balanced error distributions similar to supervised approaches, as shown in Table~\ref{tab:deberta_confusions}.
+
+\begin{table}[H]
+    \centering
+    \caption{Top-5 Confusion Patterns: DeBERTa-v3-large}
+    \label{tab:deberta_confusions}
+    \begin{tabular}{llcc}
+        \toprule
+        \textbf{True Label} & \textbf{Predicted As} & \textbf{Count} & \textbf{\% of Class} \\
+        \midrule
+        Love     & Joy     & 48 & 30.2\% \\
+        Love     & Sadness & 22 & 13.8\% \\
+        Surprise & Joy     & 14 & 21.2\% \\
+        Surprise & Sadness & 9  & 13.6\% \\
+        Fear     & Sadness & 22 & 9.8\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent DeBERTa's errors mirror those of the supervised model (love $\rightarrow$ joy, surprise $\rightarrow$ joy/fear/sadness), indicating these confusions reflect genuine semantic ambiguity rather than model-specific artifacts as proven by 
+the examples on the supervised learning section.
+The convergence of error patterns between supervised and zero-shot approaches suggests both are capturing similar linguistic regularities in the data.
+
+\noindent Notably, the small DeBERTa variant (xsmall) exhibits similar confusion patterns to its larger counterpart, further supporting the conclusion that \textit{training data composition dominates over parameter count}.
+The xsmall model's inclusion of emotion classification tasks in its training distribution (among 33 human-labeled NLI datasets) likely explains its strong performance despite limited capacity, while the large variant's mixed training approach (human-labeled + synthetic data) provides only marginal improvements for this specific task (although generalization to other tasks benefits from the increased capacity and data diversity).
+
 \bibliography{references}
 
 \end{document}
