@@ -92,7 +92,9 @@ Rarer emotions are heavily misrepresented (only 3.2\% of examples have a ``surpr
 This is an issue because the model can specialize in a subset of the classes and be biased towards them.
 In this case, completely ignoring ``surprise'' but getting every other example right would give the model a misleadingly high accuracy of approximately 96.8\%.
 This is one of the reasons why accuracy alone is not a sufficient metric for evaluating model performance in this context, and why confusion matrices and other metrics computed from them (particularly those that measure per-class performance) are very important.
-% how will ANNs deal with class imbalance compared to Zero-Shot Models? maybe talk below? leaving this here so we don't forget to mention it
+This dataset imbalance has other implications as well, specially when comparing two diferent paradigms (supervised learning and zero-shot classification), as each may be affected differently by the lack of data for certain classes.
+On the one hand we have the ANNs which are directly harmed by the lack of class representation because they learn from the empirical distribution of the data, affecting the decision boundaries they create. 
+On the other hand we have the zero-shot models which dont learn from the data, contrastingly they may be less affected by class imbalance, but their performance may still vary across classes due to the inherent biases in the pre-trained models they rely on.
 
 \noindent Another problem that stands out when analyzing the data is the reliability of its labels.
 Several of the data points show text-label pairs with a mismatch that is obvious to a human eye, with the most common pattern being lack of context undestanding.
